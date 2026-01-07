@@ -27,15 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-
-interface Role {
-  id: string;
-  name: string;
-  description: string;
-  privileges: string[];
-  usersCount: number;
-  createdAt: string;
-}
+import { useRolesStore } from "@/stores/rolesStore";
 
 const privilegeCategories = [
   {
@@ -64,43 +56,8 @@ const privilegeCategories = [
   },
 ];
 
-const mockRoles: Role[] = [
-  {
-    id: "1",
-    name: "Partner Admin",
-    description: "Full access to all features",
-    privileges: ["all"],
-    usersCount: 2,
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    name: "Support Agent",
-    description: "Card requests, management, and disputes",
-    privileges: ["dashboard.view", "cards.view", "cards.edit", "requests.view", "requests.create", "disputes.view", "disputes.create"],
-    usersCount: 5,
-    createdAt: "2024-02-20",
-  },
-  {
-    id: "3",
-    name: "Finance Officer",
-    description: "Settlements and fee reports",
-    privileges: ["dashboard.view", "reports.view", "reports.export"],
-    usersCount: 3,
-    createdAt: "2024-03-10",
-  },
-  {
-    id: "4",
-    name: "Read-Only User",
-    description: "View-only access for stakeholders",
-    privileges: ["dashboard.view", "cards.view", "requests.view", "disputes.view", "reports.view"],
-    usersCount: 8,
-    createdAt: "2024-04-05",
-  },
-];
-
 export default function AdminRoles() {
-  const [roles, setRoles] = useState<Role[]>(mockRoles);
+  const { roles, addRole } = useRolesStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newRole, setNewRole] = useState({
     name: "",
@@ -128,16 +85,12 @@ export default function AdminRoles() {
       return;
     }
 
-    const role: Role = {
-      id: String(roles.length + 1),
+    const role = addRole({
       name: newRole.name,
       description: newRole.description,
       privileges: newRole.privileges,
-      usersCount: 0,
-      createdAt: new Date().toISOString().split("T")[0],
-    };
+    });
 
-    setRoles([...roles, role]);
     setNewRole({ name: "", description: "", privileges: [] });
     setDialogOpen(false);
     toast({

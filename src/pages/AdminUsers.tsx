@@ -34,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { useRolesStore } from "@/stores/rolesStore";
 
 interface AdminUser {
   id: string;
@@ -45,13 +46,6 @@ interface AdminUser {
   lastLogin: string;
   createdAt: string;
 }
-
-const roles = [
-  "Partner Admin",
-  "Support Agent",
-  "Finance Officer",
-  "Read-Only User",
-];
 
 const mockUsers: AdminUser[] = [
   {
@@ -118,6 +112,8 @@ const userTypeConfig: Record<string, { label: string; className: string }> = {
 };
 
 export default function AdminUsers() {
+  const { getRoleNames } = useRolesStore();
+  const roleNames = getRoleNames();
   const [users, setUsers] = useState<AdminUser[]>(mockUsers);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -165,7 +161,7 @@ export default function AdminUsers() {
     });
   };
 
-  const roleStats = roles.map((role) => ({
+  const roleStats = roleNames.map((role) => ({
     role,
     count: users.filter((u) => u.role === role).length,
   }));
@@ -227,7 +223,7 @@ export default function AdminUsers() {
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
-                    {roles.map((role) => (
+                    {roleNames.map((role) => (
                       <SelectItem key={role} value={role}>
                         {role}
                       </SelectItem>
