@@ -11,6 +11,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   LogOut,
   Building2,
   Shield,
@@ -18,11 +19,22 @@ import {
   DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Card Requests", href: "/card-requests", icon: FileText },
-  { name: "Card Management", href: "/cards", icon: CreditCard },
+];
+
+const cardManagementNav = [
+  { name: "Requests", href: "/card-requests", icon: FileText },
+  { name: "Cards", href: "/cards", icon: CreditCard },
+];
+
+const operationsNav = [
   { name: "Disputes", href: "/disputes", icon: AlertTriangle },
   { name: "Approvals", href: "/approvals", icon: ClipboardCheck },
   { name: "Reports", href: "/reports", icon: BarChart3 },
@@ -38,6 +50,7 @@ const secondaryNavigation: { name: string; href: string; icon: typeof Bell }[] =
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [cardManagementOpen, setCardManagementOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -51,6 +64,8 @@ export function AppSidebar() {
     if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
   };
+
+  const isCardManagementActive = cardManagementNav.some(item => isActive(item.href));
 
   return (
     <aside
@@ -98,6 +113,76 @@ export function AppSidebar() {
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <div className="space-y-1">
           {navigation.map((item) => (
+            <Link
+              key={item.name}
+              to={item.href}
+              className={cn(
+                "nav-item",
+                isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+              )}
+            >
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              {!collapsed && <span>{item.name}</span>}
+            </Link>
+          ))}
+        </div>
+
+        {/* Card Management Section */}
+        <div className="pt-2">
+          {collapsed ? (
+            // Collapsed state - show icons only
+            <div className="space-y-1">
+              {cardManagementNav.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "nav-item",
+                    isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                  )}
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            // Expanded state - show collapsible group
+            <Collapsible open={cardManagementOpen} onOpenChange={setCardManagementOpen}>
+              <CollapsibleTrigger className={cn(
+                "nav-item w-full justify-between",
+                isCardManagementActive ? "nav-item-active" : "nav-item-inactive"
+              )}>
+                <div className="flex items-center gap-3">
+                  <CreditCard className="w-5 h-5 flex-shrink-0" />
+                  <span>Card Management</span>
+                </div>
+                <ChevronDown className={cn(
+                  "w-4 h-4 transition-transform",
+                  cardManagementOpen && "rotate-180"
+                )} />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 mt-1 space-y-1">
+                {cardManagementNav.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={cn(
+                      "nav-item",
+                      isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                    )}
+                  >
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <span>{item.name}</span>
+                  </Link>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+        </div>
+
+        {/* Operations */}
+        <div className="pt-2 space-y-1">
+          {operationsNav.map((item) => (
             <Link
               key={item.name}
               to={item.href}
