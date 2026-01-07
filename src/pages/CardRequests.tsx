@@ -12,75 +12,71 @@ import {
 const requests = [
   {
     id: "REQ-2024-001234",
-    customerName: "Adebayo Johnson",
-    customerId: "CUS-0045321",
-    cardType: "Visa Debit",
-    quantity: 1,
-    status: "approved",
-    requestedBy: "Sarah Williams",
+    batchNumber: "BATCH-2024-0089",
+    cardProfile: "Visa Gold",
+    quantity: 100,
+    type: "embossed",
+    status: "in_progress",
     createdAt: "2024-01-05 14:32",
   },
   {
     id: "REQ-2024-001233",
-    customerName: "Chioma Okafor",
-    customerId: "CUS-0045320",
-    cardType: "Mastercard Prepaid",
-    quantity: 1,
-    status: "in_production",
-    requestedBy: "John Doe",
+    batchNumber: "BATCH-2024-0088",
+    cardProfile: "Mastercard Platinum",
+    quantity: 50,
+    type: "embossed",
+    status: "ready",
     createdAt: "2024-01-05 11:15",
   },
   {
     id: "REQ-2024-001232",
-    customerName: "Emmanuel Nnamdi",
-    customerId: "CUS-0045319",
-    cardType: "Visa Debit",
-    quantity: 5,
-    status: "under_review",
-    requestedBy: "Sarah Williams",
+    batchNumber: "BATCH-2024-0087",
+    cardProfile: "Verve Standard",
+    quantity: 200,
+    type: "instant",
+    status: "pending",
     createdAt: "2024-01-04 16:48",
   },
   {
     id: "REQ-2024-001231",
-    customerName: "Fatima Abdullahi",
-    customerId: "CUS-0045318",
-    cardType: "Visa Debit",
-    quantity: 1,
+    batchNumber: "BATCH-2024-0086",
+    cardProfile: "Visa Classic",
+    quantity: 25,
+    type: "virtual",
     status: "ready",
-    requestedBy: "John Doe",
     createdAt: "2024-01-04 09:22",
   },
   {
     id: "REQ-2024-001230",
-    customerName: "Oluwaseun Bakare",
-    customerId: "CUS-0045317",
-    cardType: "Mastercard Prepaid",
-    quantity: 1,
-    status: "collected",
-    requestedBy: "Sarah Williams",
+    batchNumber: "BATCH-2024-0085",
+    cardProfile: "Mastercard Standard",
+    quantity: 150,
+    type: "embossed",
+    status: "failed",
     createdAt: "2024-01-03 13:05",
   },
   {
     id: "REQ-2024-001229",
-    customerName: "Ngozi Eze",
-    customerId: "CUS-0045316",
-    cardType: "Visa Debit",
-    quantity: 1,
-    status: "rejected",
-    requestedBy: "John Doe",
+    batchNumber: "BATCH-2024-0084",
+    cardProfile: "Visa Gold",
+    quantity: 75,
+    type: "instant",
+    status: "in_progress",
     createdAt: "2024-01-03 10:41",
   },
 ];
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  submitted: { label: "Submitted", className: "bg-muted text-muted-foreground" },
-  under_review: { label: "Under Review", className: "bg-info/10 text-info" },
-  approved: { label: "Approved", className: "bg-success/10 text-success" },
-  in_production: { label: "In Production", className: "bg-warning/10 text-warning" },
-  ready: { label: "Ready", className: "bg-accent/10 text-accent" },
-  collected: { label: "Collected", className: "bg-muted text-muted-foreground" },
-  rejected: { label: "Rejected", className: "bg-destructive/10 text-destructive" },
-  cancelled: { label: "Cancelled", className: "bg-muted text-muted-foreground" },
+  pending: { label: "Pending", className: "bg-muted text-muted-foreground" },
+  in_progress: { label: "In Progress", className: "bg-warning/10 text-warning" },
+  ready: { label: "Ready for Issuance", className: "bg-success/10 text-success" },
+  failed: { label: "Failed", className: "bg-destructive/10 text-destructive" },
+};
+
+const typeConfig: Record<string, { label: string; className: string }> = {
+  instant: { label: "Instant", className: "bg-info/10 text-info" },
+  embossed: { label: "Embossed", className: "bg-accent/10 text-accent" },
+  virtual: { label: "Virtual", className: "bg-primary/10 text-primary" },
 };
 
 export default function CardRequests() {
@@ -109,7 +105,7 @@ export default function CardRequests() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search by request ID, customer name, or ID..."
+              placeholder="Search by batch number or card profile..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-field pl-10"
@@ -133,37 +129,34 @@ export default function CardRequests() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Request ID</th>
-              <th>Customer</th>
-              <th>Card Type</th>
-              <th>Qty</th>
+              <th>Date Created</th>
+              <th>Batch Number</th>
+              <th>Card Profile</th>
+              <th>Quantity</th>
+              <th>Type</th>
               <th>Status</th>
-              <th>Requested By</th>
-              <th>Date</th>
               <th className="w-16"></th>
             </tr>
           </thead>
           <tbody>
             {requests.map((request) => (
               <tr key={request.id}>
+                <td className="text-muted-foreground text-sm">{request.createdAt}</td>
                 <td>
-                  <span className="font-medium text-foreground">{request.id}</span>
+                  <span className="font-medium text-foreground">{request.batchNumber}</span>
                 </td>
+                <td className="text-foreground">{request.cardProfile}</td>
+                <td className="text-muted-foreground">{request.quantity.toLocaleString()}</td>
                 <td>
-                  <div>
-                    <p className="font-medium text-foreground">{request.customerName}</p>
-                    <p className="text-xs text-muted-foreground">{request.customerId}</p>
-                  </div>
+                  <Badge className={typeConfig[request.type].className}>
+                    {typeConfig[request.type].label}
+                  </Badge>
                 </td>
-                <td className="text-muted-foreground">{request.cardType}</td>
-                <td className="text-muted-foreground">{request.quantity}</td>
                 <td>
                   <Badge className={statusConfig[request.status].className}>
                     {statusConfig[request.status].label}
                   </Badge>
                 </td>
-                <td className="text-muted-foreground">{request.requestedBy}</td>
-                <td className="text-muted-foreground text-sm">{request.createdAt}</td>
                 <td>
                   <DropdownMenu>
                     <DropdownMenuTrigger className="p-2 hover:bg-muted rounded-lg">
@@ -174,7 +167,7 @@ export default function CardRequests() {
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
                       </DropdownMenuItem>
-                      {request.status === "submitted" && (
+                      {request.status === "pending" && (
                         <DropdownMenuItem className="text-destructive">
                           Cancel Request
                         </DropdownMenuItem>
