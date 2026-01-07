@@ -11,6 +11,7 @@ import CardManagement from "./pages/CardManagement";
 import Disputes from "./pages/Disputes";
 import NewDispute from "./pages/NewDispute";
 import Approvals from "./pages/Approvals";
+import FeeConfiguration from "./pages/FeeConfiguration";
 import Reports from "./pages/Reports";
 import SettlementReports from "./pages/SettlementReports";
 import AdminUsers from "./pages/AdminUsers";
@@ -53,6 +54,7 @@ const App = () => (
                     <Route path="/disputes" element={<Disputes />} />
                     <Route path="/disputes/new" element={<NewDispute />} />
                     <Route path="/approvals" element={<Approvals />} />
+                    <Route path="/fees" element={<FeeConfiguration />} />
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/reports/settlements" element={<SettlementReports />} />
                     <Route path="/admin/users" element={<AdminUsers />} />
