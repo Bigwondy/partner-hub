@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Check, CreditCard } from "lucide-react";
+import { ArrowLeft, Check, CreditCard, Upload, Download, FileSpreadsheet } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -11,23 +11,54 @@ const cardProfiles = [
   { id: "verve_standard", name: "Verve Standard", fee: 1500 },
 ];
 
+type CardType = "instant" | "embossed" | null;
+
 export default function NewCardRequest() {
   const navigate = useNavigate();
+  const [selectedType, setSelectedType] = useState<CardType>(null);
+  const [cardProfile, setCardProfile] = useState("");
+  const [quantity, setQuantity] = useState("1");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
-  const [formData, setFormData] = useState({
-    cardType: "",
-    cardProfile: "",
-    numberOfCards: "1",
-  });
+  const selectedProfileData = cardProfiles.find((p) => p.id === cardProfile);
+  const totalFee = selectedProfileData ? selectedProfileData.fee * parseInt(quantity || "0") : 0;
 
-  const selectedProfile = cardProfiles.find((p) => p.id === formData.cardProfile);
-  const totalFee = selectedProfile ? selectedProfile.fee * parseInt(formData.numberOfCards || "0") : 0;
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      toast.success(`File "${file.name}" uploaded successfully`);
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    // Create a simple CSV template
+    const templateContent = "Customer Name,Account Number,Email,Phone Number,Address\nJohn Doe,1234567890,john@example.com,08012345678,123 Main Street Lagos";
+    const blob = new Blob([templateContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "card_request_template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Template downloaded successfully");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.cardType || !formData.cardProfile || !formData.numberOfCards) {
-      toast.error("Please fill in all fields");
+
+    if (!cardProfile) {
+      toast.error("Please select a card profile");
+      return;
+    }
+
+    if (selectedType === "instant" && !quantity) {
+      toast.error("Please enter the quantity");
+      return;
+    }
+
+    if (selectedType === "embossed" && !uploadedFile) {
+      toast.error("Please upload a card file");
       return;
     }
 
@@ -35,136 +66,287 @@ export default function NewCardRequest() {
     navigate("/card-requests");
   };
 
+  const handleBack = () => {
+    if (selectedType) {
+      setSelectedType(null);
+      setCardProfile("");
+      setQuantity("1");
+      setUploadedFile(null);
+    } else {
+      navigate("/card-requests");
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in max-w-2xl">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link to="/card-requests" className="p-2 hover:bg-muted rounded-lg transition-colors">
+        <button onClick={handleBack} className="p-2 hover:bg-muted rounded-lg transition-colors">
           <ArrowLeft className="w-5 h-5 text-muted-foreground" />
-        </Link>
+        </button>
         <div className="page-header mb-0">
           <h1 className="page-title">New Card Request</h1>
-          <p className="page-description">Submit a new card production request</p>
+          <p className="page-description">
+            {selectedType === null
+              ? "Select the type of physical card you want to request"
+              : selectedType === "instant"
+              ? "Request instant cards for immediate issuance"
+              : "Request embossed cards with personalized details"}
+          </p>
         </div>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="card-elevated p-6">
-        <div className="space-y-6">
-          {/* Card Type */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-3">
-              Card Type
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { id: "instant", name: "Instant Card", description: "Issued immediately at branch" },
-                { id: "embossed", name: "Embossed Card", description: "Personalized with raised text" },
-                { id: "virtual", name: "Virtual Card", description: "Digital card for online use" },
-              ].map((type) => (
-                <label
-                  key={type.id}
-                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    formData.cardType === type.id
-                      ? "border-accent bg-accent/5"
-                      : "border-border hover:border-accent/50"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="cardType"
-                    value={type.id}
-                    checked={formData.cardType === type.id}
-                    onChange={(e) => setFormData({ ...formData, cardType: e.target.value })}
-                    className="sr-only"
-                  />
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${formData.cardType === type.id ? "bg-accent/20" : "bg-muted"}`}>
-                      <CreditCard className={`w-5 h-5 ${formData.cardType === type.id ? "text-accent" : "text-muted-foreground"}`} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{type.name}</p>
-                      <p className="text-xs text-muted-foreground">{type.description}</p>
-                    </div>
+      {/* Card Type Selection */}
+      {selectedType === null && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <button
+            onClick={() => setSelectedType("instant")}
+            className="card-elevated p-6 text-left hover:border-accent transition-all group"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-info/10 group-hover:bg-info/20 transition-colors">
+                <CreditCard className="w-6 h-6 text-info" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-foreground mb-2">Instant Cards</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Request blank cards for immediate issuance at branch locations. Simply select the profile and quantity.
+                </p>
+                <span className="text-sm font-medium text-accent">Select →</span>
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setSelectedType("embossed")}
+            className="card-elevated p-6 text-left hover:border-accent transition-all group"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-accent/10 group-hover:bg-accent/20 transition-colors">
+                <CreditCard className="w-6 h-6 text-accent" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-foreground mb-2">Embossed Cards</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Request personalized cards with raised text. Upload a card file with customer details.
+                </p>
+                <span className="text-sm font-medium text-accent">Select →</span>
+              </div>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* Instant Card Form */}
+      {selectedType === "instant" && (
+        <form onSubmit={handleSubmit} className="card-elevated p-6">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 pb-4 border-b border-border">
+              <div className="p-2 rounded-lg bg-info/10">
+                <CreditCard className="w-5 h-5 text-info" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Instant Card Request</h3>
+                <p className="text-sm text-muted-foreground">Cards will be available for immediate issuance</p>
+              </div>
+            </div>
+
+            {/* Card Profile */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Card Profile
+              </label>
+              <select
+                value={cardProfile}
+                onChange={(e) => setCardProfile(e.target.value)}
+                className="input-field"
+              >
+                <option value="">Select a card profile</option>
+                {cardProfiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.name} - ₦{profile.fee.toLocaleString()}/card
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Quantity */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Quantity
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="1000"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="input-field"
+                placeholder="Enter number of cards"
+              />
+            </div>
+
+            {/* Summary */}
+            {cardProfile && quantity && (
+              <div className="p-4 bg-info/5 rounded-xl border border-info/20">
+                <h4 className="text-sm font-medium text-foreground mb-3">Request Summary</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Card Profile</span>
+                    <span className="font-medium text-foreground">{selectedProfileData?.name}</span>
                   </div>
-                </label>
-              ))}
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Quantity</span>
+                    <span className="font-medium text-foreground">{quantity} card(s)</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-info/20">
+                    <span className="text-muted-foreground">Total Fee</span>
+                    <span className="text-lg font-bold text-info">₦{totalFee.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <div className="pt-4 border-t border-border">
+              <button
+                type="submit"
+                className="btn-accent w-full py-3"
+                disabled={!cardProfile || !quantity}
+              >
+                <Check className="w-4 h-4" />
+                Submit Request
+              </button>
             </div>
           </div>
+        </form>
+      )}
 
-          {/* Card Profile */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Card Profile
-            </label>
-            <select
-              value={formData.cardProfile}
-              onChange={(e) => setFormData({ ...formData, cardProfile: e.target.value })}
-              className="input-field"
-            >
-              <option value="">Select a card profile</option>
-              {cardProfiles.map((profile) => (
-                <option key={profile.id} value={profile.id}>
-                  {profile.name} - ₦{profile.fee.toLocaleString()}/card
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* Embossed Card Form */}
+      {selectedType === "embossed" && (
+        <form onSubmit={handleSubmit} className="card-elevated p-6">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 pb-4 border-b border-border">
+              <div className="p-2 rounded-lg bg-accent/10">
+                <CreditCard className="w-5 h-5 text-accent" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Embossed Card Request</h3>
+                <p className="text-sm text-muted-foreground">Personalized cards with raised text</p>
+              </div>
+            </div>
 
-          {/* Number of Cards */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Number of Cards
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="1000"
-              value={formData.numberOfCards}
-              onChange={(e) => setFormData({ ...formData, numberOfCards: e.target.value })}
-              className="input-field"
-              placeholder="Enter quantity"
-            />
-          </div>
+            {/* Card Profile */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Card Profile
+              </label>
+              <select
+                value={cardProfile}
+                onChange={(e) => setCardProfile(e.target.value)}
+                className="input-field"
+              >
+                <option value="">Select a card profile</option>
+                {cardProfiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.name} - ₦{profile.fee.toLocaleString()}/card
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Summary */}
-          {formData.cardType && formData.cardProfile && formData.numberOfCards && (
-            <div className="p-4 bg-accent/5 rounded-xl border border-accent/20">
-              <h3 className="text-sm font-medium text-foreground mb-3">Request Summary</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Card Type</span>
-                  <span className="font-medium text-foreground capitalize">{formData.cardType} Card</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Card Profile</span>
-                  <span className="font-medium text-foreground">{selectedProfile?.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Quantity</span>
-                  <span className="font-medium text-foreground">{formData.numberOfCards} card(s)</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t border-accent/20">
-                  <span className="text-muted-foreground">Total Fee</span>
-                  <span className="text-lg font-bold text-accent">₦{totalFee.toLocaleString()}</span>
+            {/* Download Template */}
+            <div className="p-4 bg-muted/50 rounded-xl border border-border">
+              <div className="flex items-start gap-3">
+                <FileSpreadsheet className="w-5 h-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-foreground mb-1">Card File Template</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Download the template, fill in customer details, then upload the completed file.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleDownloadTemplate}
+                    className="btn-secondary text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download Template
+                  </button>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Submit Button */}
-          <div className="pt-4 border-t border-border">
-            <button
-              type="submit"
-              className="btn-accent w-full py-3"
-              disabled={!formData.cardType || !formData.cardProfile || !formData.numberOfCards}
-            >
-              <Check className="w-4 h-4" />
-              Submit Request
-            </button>
+            {/* File Upload */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Upload Card File
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".csv,.xlsx,.xls"
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
+                  uploadedFile ? "border-success bg-success/5" : "border-border hover:border-accent"
+                }`}>
+                  {uploadedFile ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <FileSpreadsheet className="w-8 h-8 text-success" />
+                      <div className="text-left">
+                        <p className="font-medium text-foreground">{uploadedFile.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {(uploadedFile.size / 1024).toFixed(2)} KB
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        CSV, XLSX, or XLS files only
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Summary */}
+            {cardProfile && uploadedFile && (
+              <div className="p-4 bg-accent/5 rounded-xl border border-accent/20">
+                <h4 className="text-sm font-medium text-foreground mb-3">Request Summary</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Card Profile</span>
+                    <span className="font-medium text-foreground">{selectedProfileData?.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Card File</span>
+                    <span className="font-medium text-foreground">{uploadedFile.name}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <div className="pt-4 border-t border-border">
+              <button
+                type="submit"
+                className="btn-accent w-full py-3"
+                disabled={!cardProfile || !uploadedFile}
+              >
+                <Check className="w-4 h-4" />
+                Submit Request
+              </button>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      )}
     </div>
   );
 }
