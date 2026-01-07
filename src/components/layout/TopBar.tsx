@@ -1,4 +1,5 @@
 import { Bell, Menu, Search } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface TopBarProps {
   onMenuClick?: () => void;
@@ -39,10 +40,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         </div>
 
         {/* Notifications */}
-        <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
+        <Link to="/notifications" className="relative p-2 rounded-lg hover:bg-muted transition-colors">
           <Bell className="w-5 h-5 text-muted-foreground" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
-        </button>
+        </Link>
 
         {/* User menu */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l border-border">
