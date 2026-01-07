@@ -15,6 +15,7 @@ import {
   Building2,
   Shield,
   ClipboardCheck,
+  DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ const navigation = [
   { name: "Disputes", href: "/disputes", icon: AlertTriangle },
   { name: "Approvals", href: "/approvals", icon: ClipboardCheck },
   { name: "Reports", href: "/reports", icon: BarChart3 },
+  { name: "Fee Configuration", href: "/fees", icon: DollarSign },
 ];
 
 const adminNavigation = [
