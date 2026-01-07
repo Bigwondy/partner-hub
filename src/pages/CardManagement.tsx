@@ -138,7 +138,8 @@ export default function CardManagement() {
 
     const matchesTab =
       activeTab === "all" ||
-      card.cardCategory === activeTab;
+      (activeTab === "physical" && (card.cardCategory === "instant" || card.cardCategory === "embossed")) ||
+      (activeTab === "virtual" && card.cardCategory === "virtual");
 
     return matchesSearch && matchesTab;
   });
@@ -251,10 +252,9 @@ export default function CardManagement() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
-          <TabsTrigger value="all">All Cards ({counts.all})</TabsTrigger>
-          <TabsTrigger value="instant">Instant ({counts.instant})</TabsTrigger>
-          <TabsTrigger value="embossed">Embossed ({counts.embossed})</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+          <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
+          <TabsTrigger value="physical">Physical ({counts.instant + counts.embossed})</TabsTrigger>
           <TabsTrigger value="virtual">Virtual ({counts.virtual})</TabsTrigger>
         </TabsList>
 
