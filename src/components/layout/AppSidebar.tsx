@@ -14,6 +14,7 @@ import {
   LogOut,
   Building2,
   Shield,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,7 @@ const navigation = [
   { name: "Card Requests", href: "/card-requests", icon: FileText },
   { name: "Card Management", href: "/cards", icon: CreditCard },
   { name: "Disputes", href: "/disputes", icon: AlertTriangle },
+  { name: "Approvals", href: "/approvals", icon: ClipboardCheck },
   { name: "Reports", href: "/reports", icon: BarChart3 },
 ];
 
