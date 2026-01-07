@@ -38,8 +38,11 @@ import { useRolesStore } from "@/stores/rolesStore";
 
 interface AdminUser {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  username: string;
   email: string;
+  phoneNumber: string;
   role: string;
   userType: "Admin" | "Regular";
   status: "Active" | "Inactive" | "Pending";
@@ -50,8 +53,11 @@ interface AdminUser {
 const mockUsers: AdminUser[] = [
   {
     id: "1",
-    name: "Wonderful Onwuchekwa",
+    firstName: "Wonderful",
+    lastName: "Onwuchekwa",
+    username: "wonderful.o",
     email: "wonderful@acmecorp.com",
+    phoneNumber: "+234 801 234 5678",
     role: "Partner Admin",
     userType: "Admin",
     status: "Active",
@@ -60,8 +66,11 @@ const mockUsers: AdminUser[] = [
   },
   {
     id: "2",
-    name: "Adebayo Johnson",
+    firstName: "Adebayo",
+    lastName: "Johnson",
+    username: "adebayo.j",
     email: "adebayo@acmecorp.com",
+    phoneNumber: "+234 802 345 6789",
     role: "Support Agent",
     userType: "Regular",
     status: "Active",
@@ -70,8 +79,11 @@ const mockUsers: AdminUser[] = [
   },
   {
     id: "3",
-    name: "Chioma Eze",
+    firstName: "Chioma",
+    lastName: "Eze",
+    username: "chioma.e",
     email: "chioma@acmecorp.com",
+    phoneNumber: "+234 803 456 7890",
     role: "Finance Officer",
     userType: "Regular",
     status: "Active",
@@ -80,8 +92,11 @@ const mockUsers: AdminUser[] = [
   },
   {
     id: "4",
-    name: "Emeka Okonkwo",
+    firstName: "Emeka",
+    lastName: "Okonkwo",
+    username: "emeka.o",
     email: "emeka@acmecorp.com",
+    phoneNumber: "+234 804 567 8901",
     role: "Support Agent",
     userType: "Regular",
     status: "Pending",
@@ -90,8 +105,11 @@ const mockUsers: AdminUser[] = [
   },
   {
     id: "5",
-    name: "Fatima Abdullahi",
+    firstName: "Fatima",
+    lastName: "Abdullahi",
+    username: "fatima.a",
     email: "fatima@acmecorp.com",
+    phoneNumber: "+234 805 678 9012",
     role: "Read-Only User",
     userType: "Regular",
     status: "Inactive",
@@ -118,8 +136,12 @@ export default function AdminUsers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newUser, setNewUser] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
+    username: "",
     email: "",
+    password: "",
+    phoneNumber: "",
     role: "",
     userType: "Regular" as "Admin" | "Regular",
   });
@@ -127,12 +149,13 @@ export default function AdminUsers() {
 
   const filteredUsers = users.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCreateUser = () => {
-    if (!newUser.name || !newUser.email || !newUser.role) {
+    if (!newUser.firstName || !newUser.lastName || !newUser.username || !newUser.email || !newUser.password || !newUser.phoneNumber || !newUser.role) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -143,8 +166,11 @@ export default function AdminUsers() {
 
     const user: AdminUser = {
       id: String(users.length + 1),
-      name: newUser.name,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      username: newUser.username,
       email: newUser.email,
+      phoneNumber: newUser.phoneNumber,
       role: newUser.role,
       userType: newUser.userType,
       status: "Pending",
@@ -153,7 +179,7 @@ export default function AdminUsers() {
     };
 
     setUsers([...users, user]);
-    setNewUser({ name: "", email: "", role: "", userType: "Regular" });
+    setNewUser({ firstName: "", lastName: "", username: "", email: "", password: "", phoneNumber: "", role: "", userType: "Regular" });
     setDialogOpen(false);
     toast({
       title: "User Created",
@@ -188,15 +214,39 @@ export default function AdminUsers() {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
+                    id="firstName"
+                    value={newUser.firstName}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, firstName: e.target.value })
+                    }
+                    placeholder="Enter first name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    value={newUser.lastName}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, lastName: e.target.value })
+                    }
+                    placeholder="Enter last name"
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="userName">Full Name</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="userName"
-                  value={newUser.name}
+                  id="username"
+                  value={newUser.username}
                   onChange={(e) =>
-                    setNewUser({ ...newUser, name: e.target.value })
+                    setNewUser({ ...newUser, username: e.target.value })
                   }
-                  placeholder="Enter full name"
+                  placeholder="Enter username"
                 />
               </div>
               <div className="space-y-2">
@@ -212,45 +262,71 @@ export default function AdminUsers() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="userRole">Role</Label>
-                <Select
-                  value={newUser.role}
-                  onValueChange={(value) =>
-                    setNewUser({ ...newUser, role: value })
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, password: e.target.value })
                   }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roleNames.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {role}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Enter password"
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="userType">User Type</Label>
-                <Select
-                  value={newUser.userType}
-                  onValueChange={(value: "Admin" | "Regular") =>
-                    setNewUser({ ...newUser, userType: value })
+                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  value={newUser.phoneNumber}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, phoneNumber: e.target.value })
                   }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Admin">Admin</SelectItem>
-                    <SelectItem value="Regular">Regular</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Admin users can edit system configurations
-                </p>
+                  placeholder="+234 800 000 0000"
+                />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="userRole">Role</Label>
+                  <Select
+                    value={newUser.role}
+                    onValueChange={(value) =>
+                      setNewUser({ ...newUser, role: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roleNames.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="userType">User Type</Label>
+                  <Select
+                    value={newUser.userType}
+                    onValueChange={(value: "Admin" | "Regular") =>
+                      setNewUser({ ...newUser, userType: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Admin">Admin</SelectItem>
+                      <SelectItem value="Regular">Regular</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Admin users can edit system configurations
+              </p>
               <div className="flex justify-end gap-3 pt-4">
                 <Button
                   variant="outline"
@@ -299,11 +375,11 @@ export default function AdminUsers() {
           <TableHeader>
             <TableRow>
               <TableHead>User</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last Login</TableHead>
-              <TableHead>Created</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -314,19 +390,19 @@ export default function AdminUsers() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
                       <span className="text-sm font-semibold text-accent">
-                        {user.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
+                        {user.firstName[0]}{user.lastName[0]}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium">{user.name}</p>
+                      <p className="font-medium">{user.firstName} {user.lastName}</p>
                       <p className="text-sm text-muted-foreground">
-                        {user.email}
+                        @{user.username}
                       </p>
                     </div>
                   </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {user.email}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {user.role}
@@ -347,9 +423,6 @@ export default function AdminUsers() {
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {user.lastLogin}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {user.createdAt}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
