@@ -27,13 +27,13 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 sm:p-4 relative overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        {/* Gradient Orbs */}
-        <div className="absolute top-0 -left-40 w-80 h-80 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" />
-        <div className="absolute top-0 -right-40 w-80 h-80 bg-accent/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: "1s" }} />
-        <div className="absolute -bottom-40 left-1/2 w-80 h-80 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: "2s" }} />
+        {/* Gradient Orbs - scaled down on mobile */}
+        <div className="absolute top-0 -left-20 sm:-left-40 w-40 sm:w-80 h-40 sm:h-80 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" />
+        <div className="absolute top-0 -right-20 sm:-right-40 w-40 sm:w-80 h-40 sm:h-80 bg-accent/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: "1s" }} />
+        <div className="absolute -bottom-20 sm:-bottom-40 left-1/2 w-40 sm:w-80 h-40 sm:h-80 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: "2s" }} />
         
         {/* Grid Pattern */}
         <div 
@@ -50,18 +50,18 @@ export default function Login() {
 
       <div className="w-full max-w-md relative z-10 animate-fade-in">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25">
-            <Building2 className="w-8 h-8 text-primary-foreground" />
+        <div className="flex items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+          <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25">
+            <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Pavilion FIP</h1>
-            <p className="text-sm text-slate-400">Partner Portal</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">Pavilion FIP</h1>
+            <p className="text-xs sm:text-sm text-slate-400">Partner Portal</p>
           </div>
         </div>
 
         {/* Login Card */}
-        <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
+        <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-2xl">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-white">Welcome back</h2>
             <p className="text-slate-400 mt-1">Sign in to your account</p>
