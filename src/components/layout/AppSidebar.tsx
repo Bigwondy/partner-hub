@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   CreditCard,
@@ -9,7 +9,6 @@ import {
   Users,
   Bell,
   Settings,
-  HelpCircle,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -29,12 +28,18 @@ const navigation = [
 const secondaryNavigation = [
   { name: "Notifications", href: "/notifications", icon: Bell },
   { name: "Settings", href: "/settings", icon: Settings },
-  { name: "Help & Support", href: "/support", icon: HelpCircle },
 ];
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("userName");
+    navigate("/login");
+  };
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
@@ -139,7 +144,10 @@ export function AppSidebar() {
           )}
         </button>
         {!collapsed && (
-          <button className="nav-item nav-item-inactive w-full mt-1 text-destructive/80 hover:text-destructive hover:bg-destructive/10">
+          <button 
+            onClick={handleLogout}
+            className="nav-item nav-item-inactive w-full mt-1 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
+          >
             <LogOut className="w-5 h-5" />
             <span>Sign Out</span>
           </button>

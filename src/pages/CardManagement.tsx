@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Search, Filter, Download, Eye, MoreHorizontal, Ban, Pause, Play, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { exportToCSV, exportToExcel, exportToPDF } from "@/lib/export";
 
 const cards = [
   {
@@ -24,6 +26,7 @@ const cards = [
     customerName: "Adebayo Johnson",
     customerId: "CUS-0045321",
     type: "Visa Debit",
+    cardCategory: "instant",
     status: "active",
     expiry: "12/26",
     dailyLimit: 500000,
@@ -36,6 +39,7 @@ const cards = [
     customerName: "Chioma Okafor",
     customerId: "CUS-0045320",
     type: "Mastercard Prepaid",
+    cardCategory: "embossed",
     status: "active",
     expiry: "08/25",
     dailyLimit: 200000,
@@ -48,6 +52,7 @@ const cards = [
     customerName: "Emmanuel Nnamdi",
     customerId: "CUS-0045319",
     type: "Visa Debit",
+    cardCategory: "virtual",
     status: "paused",
     expiry: "03/27",
     dailyLimit: 500000,
@@ -60,6 +65,7 @@ const cards = [
     customerName: "Fatima Abdullahi",
     customerId: "CUS-0045318",
     type: "Visa Debit",
+    cardCategory: "instant",
     status: "blocked",
     expiry: "11/25",
     dailyLimit: 500000,
@@ -72,11 +78,25 @@ const cards = [
     customerName: "Oluwaseun Bakare",
     customerId: "CUS-0045317",
     type: "Mastercard Prepaid",
+    cardCategory: "embossed",
     status: "active",
     expiry: "06/26",
     dailyLimit: 300000,
     monthlyLimit: 3000000,
     issuedAt: "2023-06-12",
+  },
+  {
+    id: "CRD-006",
+    maskedPan: "****7721",
+    customerName: "Grace Eze",
+    customerId: "CUS-0045316",
+    type: "Visa Virtual",
+    cardCategory: "virtual",
+    status: "active",
+    expiry: "09/27",
+    dailyLimit: 100000,
+    monthlyLimit: 1000000,
+    issuedAt: "2024-01-10",
   },
 ];
 
@@ -87,8 +107,15 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   expired: { label: "Expired", className: "bg-muted text-muted-foreground" },
 };
 
+const cardCategoryLabels: Record<string, string> = {
+  instant: "Instant Card",
+  embossed: "Embossed Card",
+  virtual: "Virtual Card",
+};
+
 export default function CardManagement() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const [limitsDialogOpen, setLimitsDialogOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<typeof cards[0] | null>(null);
@@ -99,6 +126,19 @@ export default function CardManagement() {
     singleTransaction: "",
     dailyAtm: "",
     monthlyAtm: "",
+  });
+
+  const filteredCards = cards.filter((card) => {
+    const matchesSearch =
+      card.maskedPan.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.customerId.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesTab =
+      activeTab === "all" ||
+      card.cardCategory === activeTab;
+
+    return matchesSearch && matchesTab;
   });
 
   const handleBlockCard = (card: typeof cards[0]) => {
@@ -117,6 +157,57 @@ export default function CardManagement() {
     });
     setLimitsDialogOpen(true);
   };
+
+  const handleExportCSV = () => {
+    const exportData = filteredCards.map((card) => ({
+      CardNumber: card.maskedPan,
+      CustomerName: card.customerName,
+      CustomerID: card.customerId,
+      Type: card.type,
+      Category: cardCategoryLabels[card.cardCategory],
+      Status: statusConfig[card.status].label,
+      Expiry: card.expiry,
+      DailyLimit: card.dailyLimit,
+      IssuedAt: card.issuedAt,
+    }));
+    exportToCSV(exportData, "cards-export");
+  };
+
+  const handleExportExcel = () => {
+    const exportData = filteredCards.map((card) => ({
+      CardNumber: card.maskedPan,
+      CustomerName: card.customerName,
+      CustomerID: card.customerId,
+      Type: card.type,
+      Category: cardCategoryLabels[card.cardCategory],
+      Status: statusConfig[card.status].label,
+      Expiry: card.expiry,
+      DailyLimit: card.dailyLimit,
+      IssuedAt: card.issuedAt,
+    }));
+    exportToExcel(exportData, "cards-export");
+  };
+
+  const handleExportPDF = () => {
+    const exportData = filteredCards.map((card) => ({
+      CardNumber: card.maskedPan,
+      CustomerName: card.customerName,
+      Type: card.type,
+      Category: cardCategoryLabels[card.cardCategory],
+      Status: statusConfig[card.status].label,
+      Expiry: card.expiry,
+    }));
+    exportToPDF(exportData, "cards-export", "Card Management Report");
+  };
+
+  const getCardCounts = () => ({
+    all: cards.length,
+    instant: cards.filter((c) => c.cardCategory === "instant").length,
+    embossed: cards.filter((c) => c.cardCategory === "embossed").length,
+    virtual: cards.filter((c) => c.cardCategory === "virtual").length,
+  });
+
+  const counts = getCardCounts();
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -148,129 +239,160 @@ export default function CardManagement() {
         </div>
       </div>
 
-      {/* Filters Bar */}
-      <div className="card-elevated p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search by last 4 digits, customer name, or ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field pl-10"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button className="btn-secondary">
-              <Filter className="w-4 h-4" />
-              Filters
-            </button>
-            <button className="btn-secondary">
-              <Download className="w-4 h-4" />
-              Export
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+          <TabsTrigger value="all">All Cards ({counts.all})</TabsTrigger>
+          <TabsTrigger value="instant">Instant ({counts.instant})</TabsTrigger>
+          <TabsTrigger value="embossed">Embossed ({counts.embossed})</TabsTrigger>
+          <TabsTrigger value="virtual">Virtual ({counts.virtual})</TabsTrigger>
+        </TabsList>
 
-      {/* Cards Table */}
-      <div className="card-elevated overflow-hidden">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Card Number</th>
-              <th>Customer</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Expiry</th>
-              <th>Daily Limit</th>
-              <th>Issued</th>
-              <th className="w-16"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {cards.map((card) => (
-              <tr key={card.id}>
-                <td>
-                  <span className="font-mono font-medium text-foreground">{card.maskedPan}</span>
-                </td>
-                <td>
-                  <div>
-                    <p className="font-medium text-foreground">{card.customerName}</p>
-                    <p className="text-xs text-muted-foreground">{card.customerId}</p>
-                  </div>
-                </td>
-                <td className="text-muted-foreground">{card.type}</td>
-                <td>
-                  <Badge className={statusConfig[card.status].className}>
-                    {statusConfig[card.status].label}
-                  </Badge>
-                </td>
-                <td className="text-muted-foreground font-mono">{card.expiry}</td>
-                <td className="text-muted-foreground">
-                  ₦{card.dailyLimit.toLocaleString()}
-                </td>
-                <td className="text-muted-foreground text-sm">{card.issuedAt}</td>
-                <td>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="p-2 hover:bg-muted rounded-lg">
-                      <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleManageLimits(card)}>
-                        <Wallet className="w-4 h-4 mr-2" />
-                        Manage Limits
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      {card.status === "active" && (
-                        <DropdownMenuItem>
-                          <Pause className="w-4 h-4 mr-2" />
-                          Pause Card
-                        </DropdownMenuItem>
-                      )}
-                      {card.status === "paused" && (
-                        <DropdownMenuItem>
-                          <Play className="w-4 h-4 mr-2" />
-                          Resume Card
-                        </DropdownMenuItem>
-                      )}
-                      {card.status !== "blocked" && (
-                        <DropdownMenuItem 
-                          className="text-destructive"
-                          onClick={() => handleBlockCard(card)}
-                        >
-                          <Ban className="w-4 h-4 mr-2" />
-                          Block Card
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-          <p className="text-sm text-muted-foreground">
-            Showing 1-5 of 5,085 cards
-          </p>
-          <div className="flex gap-2">
-            <button className="btn-ghost text-sm" disabled>
-              Previous
-            </button>
-            <button className="btn-ghost text-sm">
-              Next
-            </button>
+        <TabsContent value={activeTab} className="mt-6">
+          {/* Filters Bar */}
+          <div className="card-elevated p-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search by last 4 digits, customer name, or ID..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="input-field pl-10"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button className="btn-secondary">
+                  <Filter className="w-4 h-4" />
+                  Filters
+                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="btn-secondary">
+                    <Download className="w-4 h-4" />
+                    Export
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleExportCSV}>
+                      Export as CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportExcel}>
+                      Export as Excel
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportPDF}>
+                      Export as PDF
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {/* Cards Table */}
+          <div className="card-elevated overflow-hidden">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Card Number</th>
+                  <th>Customer</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Expiry</th>
+                  <th>Daily Limit</th>
+                  <th>Issued</th>
+                  <th className="w-16"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCards.map((card) => (
+                  <tr key={card.id}>
+                    <td>
+                      <span className="font-mono font-medium text-foreground">{card.maskedPan}</span>
+                    </td>
+                    <td>
+                      <div>
+                        <p className="font-medium text-foreground">{card.customerName}</p>
+                        <p className="text-xs text-muted-foreground">{card.customerId}</p>
+                      </div>
+                    </td>
+                    <td className="text-muted-foreground">{card.type}</td>
+                    <td>
+                      <Badge variant="outline" className="text-xs">
+                        {cardCategoryLabels[card.cardCategory]}
+                      </Badge>
+                    </td>
+                    <td>
+                      <Badge className={statusConfig[card.status].className}>
+                        {statusConfig[card.status].label}
+                      </Badge>
+                    </td>
+                    <td className="text-muted-foreground font-mono">{card.expiry}</td>
+                    <td className="text-muted-foreground">
+                      ₦{card.dailyLimit.toLocaleString()}
+                    </td>
+                    <td className="text-muted-foreground text-sm">{card.issuedAt}</td>
+                    <td>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="p-2 hover:bg-muted rounded-lg">
+                          <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Eye className="w-4 h-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleManageLimits(card)}>
+                            <Wallet className="w-4 h-4 mr-2" />
+                            Manage Limits
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {card.status === "active" && (
+                            <DropdownMenuItem>
+                              <Pause className="w-4 h-4 mr-2" />
+                              Pause Card
+                            </DropdownMenuItem>
+                          )}
+                          {card.status === "paused" && (
+                            <DropdownMenuItem>
+                              <Play className="w-4 h-4 mr-2" />
+                              Resume Card
+                            </DropdownMenuItem>
+                          )}
+                          {card.status !== "blocked" && (
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => handleBlockCard(card)}
+                            >
+                              <Ban className="w-4 h-4 mr-2" />
+                              Block Card
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+              <p className="text-sm text-muted-foreground">
+                Showing 1-{filteredCards.length} of {filteredCards.length} cards
+              </p>
+              <div className="flex gap-2">
+                <button className="btn-ghost text-sm" disabled>
+                  Previous
+                </button>
+                <button className="btn-ghost text-sm">
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Block Card Dialog */}
       <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>

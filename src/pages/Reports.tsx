@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { FileText, Download, Calendar, Filter, ArrowUpRight, ArrowDownRight, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { exportToCSV, exportToExcel, exportToPDF } from "@/lib/export";
 
 const reportTypes = [
   {
@@ -94,6 +101,49 @@ export default function Reports() {
   const [selectedReport, setSelectedReport] = useState("transactions");
   const [dateRange, setDateRange] = useState("last_30_days");
 
+  const handleExportCSV = () => {
+    const exportData = sampleTransactions.map((tx) => ({
+      TransactionID: tx.id,
+      Card: tx.cardMasked,
+      Type: tx.type,
+      Merchant: tx.merchant,
+      Amount: tx.amount,
+      Fee: tx.fee,
+      Status: tx.status,
+      Date: tx.date,
+    }));
+    exportToCSV(exportData, `${selectedReport}-report`);
+  };
+
+  const handleExportExcel = () => {
+    const exportData = sampleTransactions.map((tx) => ({
+      TransactionID: tx.id,
+      Card: tx.cardMasked,
+      Type: tx.type,
+      Merchant: tx.merchant,
+      Amount: tx.amount,
+      Fee: tx.fee,
+      Status: tx.status,
+      Date: tx.date,
+    }));
+    exportToExcel(exportData, `${selectedReport}-report`);
+  };
+
+  const handleExportPDF = () => {
+    const reportTitle = reportTypes.find((r) => r.id === selectedReport)?.name || "Report";
+    const exportData = sampleTransactions.map((tx) => ({
+      TransactionID: tx.id,
+      Card: tx.cardMasked,
+      Type: tx.type,
+      Merchant: tx.merchant,
+      Amount: `₦${tx.amount.toLocaleString()}`,
+      Fee: `₦${tx.fee.toLocaleString()}`,
+      Status: tx.status,
+      Date: tx.date,
+    }));
+    exportToPDF(exportData, `${selectedReport}-report`, reportTitle);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page Header */}
@@ -151,15 +201,15 @@ export default function Reports() {
             </button>
           </div>
           <div className="flex gap-2">
-            <button className="btn-secondary">
+            <button className="btn-secondary" onClick={handleExportCSV}>
               <Download className="w-4 h-4" />
               CSV
             </button>
-            <button className="btn-secondary">
+            <button className="btn-secondary" onClick={handleExportExcel}>
               <Download className="w-4 h-4" />
               Excel
             </button>
-            <button className="btn-accent">
+            <button className="btn-accent" onClick={handleExportPDF}>
               <Download className="w-4 h-4" />
               PDF
             </button>
