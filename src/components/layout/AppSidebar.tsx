@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -17,6 +17,7 @@ import {
   ClipboardCheck,
   DollarSign,
   X,
+  LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -24,29 +25,37 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useAuthStore } from "@/stores/authStore";
 
-const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+interface NavItem {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+  requiredPrivileges: string[];
+}
+
+const navigation: NavItem[] = [
+  { name: "Dashboard", href: "/", icon: LayoutDashboard, requiredPrivileges: ["dashboard.view"] },
 ];
 
-const cardManagementNav = [
-  { name: "Requests", href: "/card-requests", icon: FileText },
-  { name: "Cards", href: "/cards", icon: CreditCard },
+const cardManagementNav: NavItem[] = [
+  { name: "Requests", href: "/card-requests", icon: FileText, requiredPrivileges: ["requests.view"] },
+  { name: "Cards", href: "/cards", icon: CreditCard, requiredPrivileges: ["cards.view"] },
 ];
 
-const operationsNav = [
-  { name: "Disputes", href: "/disputes", icon: AlertTriangle },
-  { name: "Approvals", href: "/approvals", icon: ClipboardCheck },
-  { name: "Reports", href: "/reports", icon: BarChart3 },
-  { name: "Fee Configuration", href: "/fees", icon: DollarSign },
+const operationsNav: NavItem[] = [
+  { name: "Disputes", href: "/disputes", icon: AlertTriangle, requiredPrivileges: ["disputes.view"] },
+  { name: "Approvals", href: "/approvals", icon: ClipboardCheck, requiredPrivileges: ["approvals.view"] },
+  { name: "Reports", href: "/reports", icon: BarChart3, requiredPrivileges: ["reports.view"] },
+  { name: "Fee Configuration", href: "/fees", icon: DollarSign, requiredPrivileges: ["fees.view"] },
 ];
 
-const adminNavigation = [
-  { name: "Users", href: "/admin/users", icon: Users },
-  { name: "Roles", href: "/admin/roles", icon: Shield },
+const adminNavigation: NavItem[] = [
+  { name: "Users", href: "/admin/users", icon: Users, requiredPrivileges: ["admin.users.view"] },
+  { name: "Roles", href: "/admin/roles", icon: Shield, requiredPrivileges: ["admin.roles.view"] },
 ];
 
-const secondaryNavigation: { name: string; href: string; icon: typeof Bell }[] = [];
+const secondaryNavigation: NavItem[] = [];
 
 interface AppSidebarProps {
   mobileOpen?: boolean;
@@ -58,10 +67,32 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   const [cardManagementOpen, setCardManagementOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, setUser, hasAnyPrivilege } = useAuthStore();
+
+  // Restore user from localStorage on mount
+  useEffect(() => {
+    if (!user) {
+      const storedPrivileges = localStorage.getItem("userPrivileges");
+      const storedRole = localStorage.getItem("userRole");
+      const storedName = localStorage.getItem("userName");
+      if (storedPrivileges && storedRole && storedName) {
+        setUser({
+          id: "restored",
+          name: storedName,
+          email: "",
+          role: storedRole,
+          privileges: JSON.parse(storedPrivileges),
+        });
+      }
+    }
+  }, [user, setUser]);
 
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userName");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userPrivileges");
+    setUser(null);
     navigate("/login");
   };
 
@@ -70,7 +101,18 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
     return location.pathname.startsWith(path);
   };
 
-  const isCardManagementActive = cardManagementNav.some(item => isActive(item.href));
+  // Filter navigation items based on user privileges
+  const filterNavItems = (items: NavItem[]) => {
+    return items.filter(item => hasAnyPrivilege(item.requiredPrivileges));
+  };
+
+  const filteredNavigation = filterNavItems(navigation);
+  const filteredCardManagement = filterNavItems(cardManagementNav);
+  const filteredOperations = filterNavItems(operationsNav);
+  const filteredAdmin = filterNavItems(adminNavigation);
+  const filteredSecondary = filterNavItems(secondaryNavigation);
+
+  const isCardManagementActive = filteredCardManagement.some(item => isActive(item.href));
 
   const handleNavClick = () => {
     if (onMobileClose) {
@@ -127,7 +169,7 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
       {/* Main Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <div className="space-y-1">
-          {navigation.map((item) => (
+          {filteredNavigation.map((item) => (
             <Link
               key={item.name}
               to={item.href}
@@ -144,40 +186,11 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
         </div>
 
         {/* Card Management Section */}
-        <div className="pt-2">
-          {collapsed ? (
-            <div className="space-y-1">
-              {cardManagementNav.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={handleNavClick}
-                  className={cn(
-                    "nav-item",
-                    isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
-                  )}
-                >
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <Collapsible open={cardManagementOpen} onOpenChange={setCardManagementOpen}>
-              <CollapsibleTrigger className={cn(
-                "nav-item w-full justify-between",
-                isCardManagementActive ? "nav-item-active" : "nav-item-inactive"
-              )}>
-                <div className="flex items-center gap-3">
-                  <CreditCard className="w-5 h-5 flex-shrink-0" />
-                  <span>Card Management</span>
-                </div>
-                <ChevronDown className={cn(
-                  "w-4 h-4 transition-transform",
-                  cardManagementOpen && "rotate-180"
-                )} />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pl-4 mt-1 space-y-1">
-                {cardManagementNav.map((item) => (
+        {filteredCardManagement.length > 0 && (
+          <div className="pt-2">
+            {collapsed ? (
+              <div className="space-y-1">
+                {filteredCardManagement.map((item) => (
                   <Link
                     key={item.name}
                     to={item.href}
@@ -188,62 +201,97 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
                     )}
                   >
                     <item.icon className="w-5 h-5 flex-shrink-0" />
-                    <span>{item.name}</span>
                   </Link>
                 ))}
-              </CollapsibleContent>
-            </Collapsible>
-          )}
-        </div>
+              </div>
+            ) : (
+              <Collapsible open={cardManagementOpen} onOpenChange={setCardManagementOpen}>
+                <CollapsibleTrigger className={cn(
+                  "nav-item w-full justify-between",
+                  isCardManagementActive ? "nav-item-active" : "nav-item-inactive"
+                )}>
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="w-5 h-5 flex-shrink-0" />
+                    <span>Card Management</span>
+                  </div>
+                  <ChevronDown className={cn(
+                    "w-4 h-4 transition-transform",
+                    cardManagementOpen && "rotate-180"
+                  )} />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 mt-1 space-y-1">
+                  {filteredCardManagement.map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      onClick={handleNavClick}
+                      className={cn(
+                        "nav-item",
+                        isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                      )}
+                    >
+                      <item.icon className="w-5 h-5 flex-shrink-0" />
+                      <span>{item.name}</span>
+                    </Link>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+          </div>
+        )}
 
         {/* Operations */}
-        <div className="pt-2 space-y-1">
-          {operationsNav.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              onClick={handleNavClick}
-              className={cn(
-                "nav-item",
-                isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
-              )}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && <span>{item.name}</span>}
-            </Link>
-          ))}
-        </div>
+        {filteredOperations.length > 0 && (
+          <div className="pt-2 space-y-1">
+            {filteredOperations.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={handleNavClick}
+                className={cn(
+                  "nav-item",
+                  isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                )}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                {!collapsed && <span>{item.name}</span>}
+              </Link>
+            ))}
+          </div>
+        )}
 
-        <div className="pt-6">
-          {!collapsed && (
-            <p className="px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider">
-              Admin
-            </p>
-          )}
-          {adminNavigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              onClick={handleNavClick}
-              className={cn(
-                "nav-item",
-                isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
-              )}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && <span>{item.name}</span>}
-            </Link>
-          ))}
-        </div>
+        {filteredAdmin.length > 0 && (
+          <div className="pt-6">
+            {!collapsed && (
+              <p className="px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider">
+                Admin
+              </p>
+            )}
+            {filteredAdmin.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={handleNavClick}
+                className={cn(
+                  "nav-item",
+                  isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                )}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                {!collapsed && <span>{item.name}</span>}
+              </Link>
+            ))}
+          </div>
+        )}
 
-        {secondaryNavigation.length > 0 && (
+        {filteredSecondary.length > 0 && (
           <div className="pt-4">
             {!collapsed && (
               <p className="px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider">
                 Support
               </p>
             )}
-            {secondaryNavigation.map((item) => (
+            {filteredSecondary.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}

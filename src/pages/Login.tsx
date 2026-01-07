@@ -1,9 +1,75 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Building2, Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { useAuthStore } from "@/stores/authStore";
+
+// Test user accounts with different roles
+const testUsers = [
+  {
+    email: "admin@pavilion.com",
+    password: "admin123",
+    user: {
+      id: "1",
+      name: "Wonderful Onwuchekwa",
+      email: "admin@pavilion.com",
+      role: "Partner Admin",
+      privileges: ["all"],
+    },
+  },
+  {
+    email: "support@pavilion.com",
+    password: "support123",
+    user: {
+      id: "2",
+      name: "Jane Support",
+      email: "support@pavilion.com",
+      role: "Support Agent",
+      privileges: [
+        "dashboard.view",
+        "cards.view", "cards.edit", "cards.block", "cards.activate",
+        "requests.view", "requests.create",
+        "disputes.view", "disputes.create"
+      ],
+    },
+  },
+  {
+    email: "finance@pavilion.com",
+    password: "finance123",
+    user: {
+      id: "3",
+      name: "Mark Finance",
+      email: "finance@pavilion.com",
+      role: "Finance Officer",
+      privileges: [
+        "dashboard.view", "dashboard.export",
+        "reports.view", "reports.export", "reports.settlements", "reports.transactions",
+        "fees.view", "fees.request_change"
+      ],
+    },
+  },
+  {
+    email: "readonly@pavilion.com",
+    password: "readonly123",
+    user: {
+      id: "4",
+      name: "View Only User",
+      email: "readonly@pavilion.com",
+      role: "Read-Only User",
+      privileges: [
+        "dashboard.view",
+        "cards.view",
+        "requests.view",
+        "disputes.view",
+        "reports.view",
+        "approvals.view"
+      ],
+    },
+  },
+];
 
 export default function Login() {
   const navigate = useNavigate();
+  const { setUser } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -15,10 +81,16 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    // Test credentials
-    if (email === "admin@pavilion.com" && password === "admin123") {
+    const matchedUser = testUsers.find(
+      (u) => u.email === email && u.password === password
+    );
+
+    if (matchedUser) {
       localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("userName", "Wonderful Onwuchekwa");
+      localStorage.setItem("userName", matchedUser.user.name);
+      localStorage.setItem("userRole", matchedUser.user.role);
+      localStorage.setItem("userPrivileges", JSON.stringify(matchedUser.user.privileges));
+      setUser(matchedUser.user);
       navigate("/");
     } else {
       setError("Invalid email or password");
