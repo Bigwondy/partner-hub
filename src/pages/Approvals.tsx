@@ -35,6 +35,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useApprovalsStore, ApprovalRequest } from "@/stores/approvalsStore";
 import {
   Search,
   Filter,
@@ -49,168 +50,8 @@ import {
   AlertTriangle,
   ShieldCheck,
   ShieldX,
+  UserPlus,
 } from "lucide-react";
-
-interface ApprovalRequest {
-  id: string;
-  type: "card_request" | "limit_change" | "hotlist" | "reissue" | "status_change" | "user_invite" | "config_change";
-  requestedBy: string;
-  requestedByEmail: string;
-  subject: string;
-  description: string;
-  status: "pending" | "approved" | "rejected";
-  priority: "low" | "medium" | "high";
-  createdAt: string;
-  updatedAt: string;
-  reviewedBy?: string;
-  reviewComment?: string;
-  metadata?: Record<string, string>;
-}
-
-const mockApprovals: ApprovalRequest[] = [
-  {
-    id: "APR-001",
-    type: "card_request",
-    requestedBy: "John Smith",
-    requestedByEmail: "john.smith@partner.com",
-    subject: "Bulk Card Request - 500 Instant Cards",
-    description: "Request for 500 instant cards for new customer onboarding campaign",
-    status: "pending",
-    priority: "high",
-    createdAt: "2024-01-15T10:30:00",
-    updatedAt: "2024-01-15T10:30:00",
-    metadata: {
-      cardType: "Instant",
-      profile: "Standard Debit",
-      quantity: "500",
-    },
-  },
-  {
-    id: "APR-002",
-    type: "limit_change",
-    requestedBy: "Sarah Johnson",
-    requestedByEmail: "sarah.j@partner.com",
-    subject: "Card Limit Increase - **** 4521",
-    description: "Increase daily transaction limit from ₦100,000 to ₦500,000",
-    status: "pending",
-    priority: "medium",
-    createdAt: "2024-01-15T09:15:00",
-    updatedAt: "2024-01-15T09:15:00",
-    metadata: {
-      cardPan: "**** **** **** 4521",
-      currentLimit: "₦100,000",
-      requestedLimit: "₦500,000",
-    },
-  },
-  {
-    id: "APR-003",
-    type: "hotlist",
-    requestedBy: "Michael Brown",
-    requestedByEmail: "m.brown@partner.com",
-    subject: "Hotlist Card - Fraud Suspected",
-    description: "Customer reported unauthorized transactions, requesting immediate hotlist",
-    status: "pending",
-    priority: "high",
-    createdAt: "2024-01-15T08:45:00",
-    updatedAt: "2024-01-15T08:45:00",
-    metadata: {
-      cardPan: "**** **** **** 7892",
-      reason: "Fraud suspected",
-      customerName: "Adebayo Olamide",
-    },
-  },
-  {
-    id: "APR-004",
-    type: "user_invite",
-    requestedBy: "Admin User",
-    requestedByEmail: "admin@pavilion.com",
-    subject: "New User Invitation - Finance Role",
-    description: "Invite new finance officer to access settlement reports",
-    status: "pending",
-    priority: "low",
-    createdAt: "2024-01-14T16:20:00",
-    updatedAt: "2024-01-14T16:20:00",
-    metadata: {
-      inviteeEmail: "finance.new@partner.com",
-      role: "Finance Officer",
-      userType: "Regular",
-    },
-  },
-  {
-    id: "APR-005",
-    type: "reissue",
-    requestedBy: "Emily Davis",
-    requestedByEmail: "e.davis@partner.com",
-    subject: "Card Reissuance - Expired Card",
-    description: "Customer requesting replacement for expired card",
-    status: "pending",
-    priority: "medium",
-    createdAt: "2024-01-14T14:00:00",
-    updatedAt: "2024-01-14T14:00:00",
-    metadata: {
-      cardPan: "**** **** **** 3456",
-      reason: "Card Expired",
-      customerName: "Chinwe Eze",
-    },
-  },
-  {
-    id: "APR-006",
-    type: "card_request",
-    requestedBy: "David Wilson",
-    requestedByEmail: "d.wilson@partner.com",
-    subject: "Embossed Card Request - 100 Cards",
-    description: "Request for personalized embossed cards with company branding",
-    status: "approved",
-    priority: "medium",
-    createdAt: "2024-01-13T11:00:00",
-    updatedAt: "2024-01-14T09:30:00",
-    reviewedBy: "Admin User",
-    reviewComment: "Approved. Card file verified and production scheduled.",
-    metadata: {
-      cardType: "Embossed",
-      profile: "Premium Debit",
-      quantity: "100",
-    },
-  },
-  {
-    id: "APR-007",
-    type: "status_change",
-    requestedBy: "Lisa Anderson",
-    requestedByEmail: "l.anderson@partner.com",
-    subject: "Deactivate Card - Customer Request",
-    description: "Customer requested temporary deactivation while traveling",
-    status: "approved",
-    priority: "low",
-    createdAt: "2024-01-12T15:45:00",
-    updatedAt: "2024-01-13T08:00:00",
-    reviewedBy: "Support Lead",
-    reviewComment: "Approved per customer request. Card can be reactivated upon return.",
-    metadata: {
-      cardPan: "**** **** **** 9012",
-      action: "Deactivate",
-      reason: "Travel",
-    },
-  },
-  {
-    id: "APR-008",
-    type: "config_change",
-    requestedBy: "Admin User",
-    requestedByEmail: "admin@pavilion.com",
-    subject: "Fee Configuration Update",
-    description: "Update interchange fee percentage from 1.5% to 1.75%",
-    status: "rejected",
-    priority: "high",
-    createdAt: "2024-01-11T10:00:00",
-    updatedAt: "2024-01-12T14:30:00",
-    reviewedBy: "Partner Admin",
-    reviewComment: "Rejected. Fee increase requires partner agreement renewal first.",
-    metadata: {
-      configType: "Fee",
-      currentValue: "1.5%",
-      proposedValue: "1.75%",
-    },
-  },
-];
 
 const typeConfig: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   card_request: { label: "Card Request", icon: <CreditCard className="h-4 w-4" />, color: "bg-blue-100 text-blue-800" },
@@ -218,7 +59,7 @@ const typeConfig: Record<string, { label: string; icon: React.ReactNode; color: 
   hotlist: { label: "Hotlist", icon: <AlertTriangle className="h-4 w-4" />, color: "bg-red-100 text-red-800" },
   reissue: { label: "Reissue", icon: <CreditCard className="h-4 w-4" />, color: "bg-orange-100 text-orange-800" },
   status_change: { label: "Status Change", icon: <Settings className="h-4 w-4" />, color: "bg-cyan-100 text-cyan-800" },
-  user_invite: { label: "User Invite", icon: <Users className="h-4 w-4" />, color: "bg-green-100 text-green-800" },
+  user_create: { label: "User Creation", icon: <UserPlus className="h-4 w-4" />, color: "bg-green-100 text-green-800" },
   config_change: { label: "Config Change", icon: <Settings className="h-4 w-4" />, color: "bg-yellow-100 text-yellow-800" },
 };
 
@@ -236,7 +77,7 @@ const priorityConfig: Record<string, { label: string; className: string }> = {
 
 const Approvals = () => {
   const { toast } = useToast();
-  const [approvals, setApprovals] = useState<ApprovalRequest[]>(mockApprovals);
+  const { approvals, updateApproval } = useApprovalsStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("pending");
@@ -275,19 +116,11 @@ const Approvals = () => {
   const handleSubmitAction = () => {
     if (!selectedApproval) return;
 
-    setApprovals((prev) =>
-      prev.map((a) =>
-        a.id === selectedApproval.id
-          ? {
-              ...a,
-              status: actionType === "approve" ? "approved" : "rejected",
-              updatedAt: new Date().toISOString(),
-              reviewedBy: "Current User",
-              reviewComment: reviewComment || undefined,
-            }
-          : a
-      )
-    );
+    updateApproval(selectedApproval.id, {
+      status: actionType === "approve" ? "approved" : "rejected",
+      reviewedBy: "Current User",
+      reviewComment: reviewComment || undefined,
+    });
 
     toast({
       title: actionType === "approve" ? "Request Approved" : "Request Rejected",
@@ -414,7 +247,7 @@ const Approvals = () => {
                 <SelectItem value="hotlist">Hotlist</SelectItem>
                 <SelectItem value="reissue">Reissue</SelectItem>
                 <SelectItem value="status_change">Status Change</SelectItem>
-                <SelectItem value="user_invite">User Invite</SelectItem>
+                <SelectItem value="user_create">User Creation</SelectItem>
                 <SelectItem value="config_change">Config Change</SelectItem>
               </SelectContent>
             </Select>
