@@ -22,23 +22,64 @@ const defaultRoles: Role[] = [
     id: "2",
     name: "Support Agent",
     description: "Card requests, management, and disputes",
-    privileges: ["dashboard.view", "cards.view", "cards.edit", "requests.view", "requests.create", "disputes.view", "disputes.create"],
+    privileges: [
+      "dashboard.view",
+      "cards.view", "cards.edit", "cards.block", "cards.activate",
+      "requests.view", "requests.create",
+      "disputes.view", "disputes.create"
+    ],
     usersCount: 5,
     createdAt: "2024-02-20",
   },
   {
     id: "3",
+    name: "Approver",
+    description: "Approve or reject pending requests",
+    privileges: [
+      "dashboard.view",
+      "cards.view",
+      "requests.view", "requests.approve", "requests.reject",
+      "approvals.view", "approvals.approve", "approvals.reject"
+    ],
+    usersCount: 3,
+    createdAt: "2024-02-25",
+  },
+  {
+    id: "4",
     name: "Finance Officer",
-    description: "Settlements and fee reports",
-    privileges: ["dashboard.view", "reports.view", "reports.export"],
+    description: "Settlements, fees, and financial reports",
+    privileges: [
+      "dashboard.view", "dashboard.export",
+      "reports.view", "reports.export", "reports.settlements", "reports.transactions",
+      "fees.view", "fees.request_change"
+    ],
     usersCount: 3,
     createdAt: "2024-03-10",
   },
   {
-    id: "4",
+    id: "5",
+    name: "Dispute Manager",
+    description: "Handle and resolve disputes",
+    privileges: [
+      "dashboard.view",
+      "cards.view",
+      "disputes.view", "disputes.create", "disputes.resolve", "disputes.escalate"
+    ],
+    usersCount: 2,
+    createdAt: "2024-03-15",
+  },
+  {
+    id: "6",
     name: "Read-Only User",
     description: "View-only access for stakeholders",
-    privileges: ["dashboard.view", "cards.view", "requests.view", "disputes.view", "reports.view"],
+    privileges: [
+      "dashboard.view",
+      "cards.view",
+      "requests.view",
+      "disputes.view",
+      "reports.view",
+      "approvals.view"
+    ],
     usersCount: 8,
     createdAt: "2024-04-05",
   },

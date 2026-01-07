@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, Filter, Download, Eye, MoreHorizontal } from "lucide-react";
+import { Plus, Search, Filter, Download, Eye, MoreHorizontal, X, FileSpreadsheet, Calendar, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,6 +8,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 const requests = [
   {
@@ -18,6 +25,10 @@ const requests = [
     type: "embossed",
     status: "in_progress",
     createdAt: "2024-01-05 14:32",
+    requestedBy: "Sarah Williams",
+    approvedBy: "John Doe",
+    approvedAt: "2024-01-05 15:00",
+    notes: "Urgent order for new branch opening",
   },
   {
     id: "REQ-2024-001233",
@@ -27,6 +38,10 @@ const requests = [
     type: "embossed",
     status: "ready",
     createdAt: "2024-01-05 11:15",
+    requestedBy: "John Doe",
+    approvedBy: "Sarah Williams",
+    approvedAt: "2024-01-05 12:30",
+    notes: "Premium cards for VIP customers",
   },
   {
     id: "REQ-2024-001232",
@@ -36,6 +51,10 @@ const requests = [
     type: "instant",
     status: "pending",
     createdAt: "2024-01-04 16:48",
+    requestedBy: "Sarah Williams",
+    approvedBy: null,
+    approvedAt: null,
+    notes: "Stock replenishment for Lagos branches",
   },
   {
     id: "REQ-2024-001231",
@@ -45,6 +64,10 @@ const requests = [
     type: "virtual",
     status: "ready",
     createdAt: "2024-01-04 09:22",
+    requestedBy: "John Doe",
+    approvedBy: "Sarah Williams",
+    approvedAt: "2024-01-04 10:00",
+    notes: "Virtual cards for corporate clients",
   },
   {
     id: "REQ-2024-001230",
@@ -54,6 +77,10 @@ const requests = [
     type: "embossed",
     status: "failed",
     createdAt: "2024-01-03 13:05",
+    requestedBy: "Sarah Williams",
+    approvedBy: "John Doe",
+    approvedAt: "2024-01-03 14:00",
+    notes: "File validation error - incorrect format",
   },
   {
     id: "REQ-2024-001229",
@@ -63,6 +90,10 @@ const requests = [
     type: "instant",
     status: "in_progress",
     createdAt: "2024-01-03 10:41",
+    requestedBy: "John Doe",
+    approvedBy: "Sarah Williams",
+    approvedAt: "2024-01-03 11:15",
+    notes: "Regular stock order",
   },
 ];
 
@@ -81,6 +112,13 @@ const typeConfig: Record<string, { label: string; className: string }> = {
 
 export default function CardRequests() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<typeof requests[0] | null>(null);
+
+  const handleViewDetails = (request: typeof requests[0]) => {
+    setSelectedRequest(request);
+    setDetailsOpen(true);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -163,7 +201,7 @@ export default function CardRequests() {
                       <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleViewDetails(request)}>
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
                       </DropdownMenuItem>
@@ -195,6 +233,120 @@ export default function CardRequests() {
           </div>
         </div>
       </div>
+
+      {/* Request Details Sheet */}
+      <Sheet open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <SheetContent className="sm:max-w-lg">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-accent" />
+              Request Details
+            </SheetTitle>
+            <SheetDescription>
+              {selectedRequest?.batchNumber}
+            </SheetDescription>
+          </SheetHeader>
+          
+          {selectedRequest && (
+            <div className="mt-6 space-y-6">
+              {/* Status */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Status</span>
+                <Badge className={statusConfig[selectedRequest.status].className}>
+                  {statusConfig[selectedRequest.status].label}
+                </Badge>
+              </div>
+
+              {/* Request Info */}
+              <div className="space-y-4 p-4 rounded-xl bg-muted/50 border border-border">
+                <h4 className="text-sm font-medium text-foreground">Request Information</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Request ID</p>
+                    <p className="font-medium text-foreground">{selectedRequest.id}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Batch Number</p>
+                    <p className="font-medium text-foreground">{selectedRequest.batchNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Card Profile</p>
+                    <p className="font-medium text-foreground">{selectedRequest.cardProfile}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Quantity</p>
+                    <p className="font-medium text-foreground">{selectedRequest.quantity.toLocaleString()} cards</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Type */}
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-border">
+                <div className="p-2 rounded-lg bg-accent/10">
+                  <CreditCard className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Card Type</p>
+                  <Badge className={typeConfig[selectedRequest.type].className}>
+                    {typeConfig[selectedRequest.type].label}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Timeline */}
+              <div className="space-y-4 p-4 rounded-xl bg-muted/50 border border-border">
+                <h4 className="text-sm font-medium text-foreground">Timeline</h4>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 rounded-full bg-accent mt-1.5" />
+                    <div className="flex-1">
+                      <p className="text-foreground">Request Created</p>
+                      <p className="text-muted-foreground">{selectedRequest.createdAt} by {selectedRequest.requestedBy}</p>
+                    </div>
+                  </div>
+                  {selectedRequest.approvedBy && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 rounded-full bg-success mt-1.5" />
+                      <div className="flex-1">
+                        <p className="text-foreground">Approved</p>
+                        <p className="text-muted-foreground">{selectedRequest.approvedAt} by {selectedRequest.approvedBy}</p>
+                      </div>
+                    </div>
+                  )}
+                  {selectedRequest.status === "ready" && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 rounded-full bg-success mt-1.5" />
+                      <div className="flex-1">
+                        <p className="text-foreground">Ready for Issuance</p>
+                        <p className="text-muted-foreground">Cards are ready to be collected</p>
+                      </div>
+                    </div>
+                  )}
+                  {selectedRequest.status === "failed" && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 rounded-full bg-destructive mt-1.5" />
+                      <div className="flex-1">
+                        <p className="text-foreground">Failed</p>
+                        <p className="text-muted-foreground">Request encountered an issue</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Notes */}
+              {selectedRequest.notes && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-foreground">Notes</h4>
+                  <p className="text-sm text-muted-foreground p-3 rounded-lg bg-muted/50 border border-border">
+                    {selectedRequest.notes}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

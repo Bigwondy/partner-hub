@@ -36,23 +36,35 @@ const privilegeCategories = [
   },
   {
     name: "Card Management",
-    privileges: ["cards.view", "cards.create", "cards.edit", "cards.block", "cards.delete"],
+    privileges: ["cards.view", "cards.create", "cards.edit", "cards.block", "cards.activate", "cards.hotlist", "cards.reissue", "cards.pin_reset"],
   },
   {
     name: "Card Requests",
-    privileges: ["requests.view", "requests.create", "requests.approve", "requests.reject"],
+    privileges: ["requests.view", "requests.create", "requests.approve", "requests.reject", "requests.cancel"],
   },
   {
     name: "Disputes",
-    privileges: ["disputes.view", "disputes.create", "disputes.resolve"],
+    privileges: ["disputes.view", "disputes.create", "disputes.resolve", "disputes.escalate"],
+  },
+  {
+    name: "Approvals",
+    privileges: ["approvals.view", "approvals.approve", "approvals.reject", "approvals.escalate"],
   },
   {
     name: "Reports",
-    privileges: ["reports.view", "reports.export"],
+    privileges: ["reports.view", "reports.export", "reports.settlements", "reports.transactions"],
   },
   {
-    name: "Admin",
-    privileges: ["admin.users.view", "admin.users.create", "admin.users.edit", "admin.roles.view", "admin.roles.create", "admin.roles.edit"],
+    name: "Fee Configuration",
+    privileges: ["fees.view", "fees.edit", "fees.request_change"],
+  },
+  {
+    name: "User Management",
+    privileges: ["admin.users.view", "admin.users.create", "admin.users.edit", "admin.users.deactivate"],
+  },
+  {
+    name: "Role Management",
+    privileges: ["admin.roles.view", "admin.roles.create", "admin.roles.edit", "admin.roles.delete"],
   },
 ];
 
