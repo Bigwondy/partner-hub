@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Search, Filter, Download, Eye, MoreHorizontal, Ban, Pause, Play, Wallet } from "lucide-react";
+import { Search, Filter, Download, Eye, Wallet, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -17,7 +16,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { exportToCSV, exportToExcel, exportToPDF } from "@/lib/export";
+import { CardDetailsSheet } from "@/components/cards/CardDetailsSheet";
+import { useToast } from "@/hooks/use-toast";
 
 const cards = [
   {
@@ -116,10 +118,9 @@ const cardCategoryLabels: Record<string, string> = {
 export default function CardManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const [blockDialogOpen, setBlockDialogOpen] = useState(false);
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
   const [limitsDialogOpen, setLimitsDialogOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<typeof cards[0] | null>(null);
-  const [blockReason, setBlockReason] = useState("");
   const [limits, setLimits] = useState({
     dailyTransaction: "",
     monthlyTransaction: "",
@@ -127,6 +128,7 @@ export default function CardManagement() {
     dailyAtm: "",
     monthlyAtm: "",
   });
+  const { toast } = useToast();
 
   const filteredCards = cards.filter((card) => {
     const matchesSearch =
@@ -141,9 +143,9 @@ export default function CardManagement() {
     return matchesSearch && matchesTab;
   });
 
-  const handleBlockCard = (card: typeof cards[0]) => {
+  const handleViewDetails = (card: typeof cards[0]) => {
     setSelectedCard(card);
-    setBlockDialogOpen(true);
+    setDetailsSheetOpen(true);
   };
 
   const handleManageLimits = (card: typeof cards[0]) => {
@@ -156,6 +158,14 @@ export default function CardManagement() {
       monthlyAtm: "1000000",
     });
     setLimitsDialogOpen(true);
+  };
+
+  const handleSubmitLimits = () => {
+    toast({
+      title: "Approval Request Submitted",
+      description: "Your limit change request has been submitted for approval.",
+    });
+    setLimitsDialogOpen(false);
   };
 
   const handleExportCSV = () => {
@@ -301,7 +311,7 @@ export default function CardManagement() {
                   <th>Expiry</th>
                   <th>Daily Limit</th>
                   <th>Issued</th>
-                  <th className="w-16"></th>
+                  <th className="w-24">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -333,43 +343,15 @@ export default function CardManagement() {
                     </td>
                     <td className="text-muted-foreground text-sm">{card.issuedAt}</td>
                     <td>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="p-2 hover:bg-muted rounded-lg">
-                          <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Eye className="w-4 h-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleManageLimits(card)}>
-                            <Wallet className="w-4 h-4 mr-2" />
-                            Manage Limits
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          {card.status === "active" && (
-                            <DropdownMenuItem>
-                              <Pause className="w-4 h-4 mr-2" />
-                              Pause Card
-                            </DropdownMenuItem>
-                          )}
-                          {card.status === "paused" && (
-                            <DropdownMenuItem>
-                              <Play className="w-4 h-4 mr-2" />
-                              Resume Card
-                            </DropdownMenuItem>
-                          )}
-                          {card.status !== "blocked" && (
-                            <DropdownMenuItem 
-                              className="text-destructive"
-                              onClick={() => handleBlockCard(card)}
-                            >
-                              <Ban className="w-4 h-4 mr-2" />
-                              Block Card
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDetails(card)}
+                        className="gap-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -394,54 +376,13 @@ export default function CardManagement() {
         </TabsContent>
       </Tabs>
 
-      {/* Block Card Dialog */}
-      <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-destructive flex items-center gap-2">
-              <Ban className="w-5 h-5" />
-              Block Card
-            </DialogTitle>
-            <DialogDescription>
-              This action is <strong>irreversible</strong>. The card {selectedCard?.maskedPan} will be permanently blocked and cannot be used for any transactions.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Reason for blocking
-              </label>
-              <select
-                value={blockReason}
-                onChange={(e) => setBlockReason(e.target.value)}
-                className="input-field"
-              >
-                <option value="">Select a reason</option>
-                <option value="lost">Card Lost</option>
-                <option value="stolen">Card Stolen</option>
-                <option value="fraud">Suspected Fraud</option>
-                <option value="customer">Customer Request</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div className="p-4 bg-destructive/5 rounded-lg border border-destructive/20">
-              <p className="text-sm text-destructive font-medium">Warning</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                This will immediately stop all card transactions. A new card must be issued if the customer needs continued access.
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <button className="btn-secondary" onClick={() => setBlockDialogOpen(false)}>
-              Cancel
-            </button>
-            <button className="btn-destructive" onClick={() => setBlockDialogOpen(false)}>
-              <Ban className="w-4 h-4" />
-              Block Card
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Card Details Sheet */}
+      <CardDetailsSheet
+        open={detailsSheetOpen}
+        onOpenChange={setDetailsSheetOpen}
+        card={selectedCard}
+        onManageLimits={handleManageLimits}
+      />
 
       {/* Manage Limits Dialog */}
       <Dialog open={limitsDialogOpen} onOpenChange={setLimitsDialogOpen}>
@@ -456,6 +397,12 @@ export default function CardManagement() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+              <div className="flex items-center gap-2 text-warning text-sm">
+                <Clock className="w-4 h-4" />
+                <span>This request requires supervisor approval</span>
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Daily Transaction Limit
@@ -533,12 +480,12 @@ export default function CardManagement() {
             </div>
           </div>
           <DialogFooter>
-            <button className="btn-secondary" onClick={() => setLimitsDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setLimitsDialogOpen(false)}>
               Cancel
-            </button>
-            <button className="btn-accent" onClick={() => setLimitsDialogOpen(false)}>
-              Update Limits
-            </button>
+            </Button>
+            <Button onClick={handleSubmitLimits}>
+              Submit for Approval
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

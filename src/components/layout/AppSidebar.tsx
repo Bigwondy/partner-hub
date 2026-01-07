@@ -30,10 +30,7 @@ const adminNavigation = [
   { name: "Roles", href: "/admin/roles", icon: Shield },
 ];
 
-const secondaryNavigation = [
-  { name: "Notifications", href: "/notifications", icon: Bell },
-  { name: "Settings", href: "/settings", icon: Settings },
-];
+const secondaryNavigation: { name: string; href: string; icon: typeof Bell }[] = [];
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -132,26 +129,28 @@ export function AppSidebar() {
           ))}
         </div>
 
-        <div className="pt-4">
-          {!collapsed && (
-            <p className="px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider">
-              Support
-            </p>
-          )}
-          {secondaryNavigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={cn(
-                "nav-item",
-                isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
-              )}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && <span>{item.name}</span>}
-            </Link>
-          ))}
-        </div>
+        {secondaryNavigation.length > 0 && (
+          <div className="pt-4">
+            {!collapsed && (
+              <p className="px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider">
+                Support
+              </p>
+            )}
+            {secondaryNavigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={cn(
+                  "nav-item",
+                  isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                )}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                {!collapsed && <span>{item.name}</span>}
+              </Link>
+            ))}
+          </div>
+        )}
       </nav>
 
       {/* Footer */}
