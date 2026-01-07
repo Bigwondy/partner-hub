@@ -1,5 +1,4 @@
-import { Bell, Search, User } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Bell, Search } from "lucide-react";
 
 export function TopBar() {
   return (
@@ -36,11 +35,11 @@ export function TopBar() {
         {/* User menu */}
         <div className="flex items-center gap-3 pl-4 border-l border-border">
           <div className="text-right">
-            <p className="text-sm font-medium text-foreground">John Doe</p>
+            <p className="text-sm font-medium text-foreground">Wonderful Onwuchekwa</p>
             <p className="text-xs text-muted-foreground">Partner Admin</p>
           </div>
           <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
-            <User className="w-4 h-4 text-primary-foreground" />
+            <span className="text-xs font-bold text-primary-foreground">WO</span>
           </div>
         </div>
       </div>
