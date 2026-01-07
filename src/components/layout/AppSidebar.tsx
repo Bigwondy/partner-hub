@@ -13,6 +13,7 @@ import {
   ChevronRight,
   LogOut,
   Building2,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +23,11 @@ const navigation = [
   { name: "Card Management", href: "/cards", icon: CreditCard },
   { name: "Disputes", href: "/disputes", icon: AlertTriangle },
   { name: "Reports", href: "/reports", icon: BarChart3 },
-  { name: "Users", href: "/users", icon: Users },
+];
+
+const adminNavigation = [
+  { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Roles", href: "/admin/roles", icon: Shield },
 ];
 
 const secondaryNavigation = [
@@ -107,6 +112,27 @@ export function AppSidebar() {
         </div>
 
         <div className="pt-6">
+          {!collapsed && (
+            <p className="px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider">
+              Admin
+            </p>
+          )}
+          {adminNavigation.map((item) => (
+            <Link
+              key={item.name}
+              to={item.href}
+              className={cn(
+                "nav-item",
+                isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+              )}
+            >
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              {!collapsed && <span>{item.name}</span>}
+            </Link>
+          ))}
+        </div>
+
+        <div className="pt-4">
           {!collapsed && (
             <p className="px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider">
               Support

@@ -11,7 +11,9 @@ import CardManagement from "./pages/CardManagement";
 import Disputes from "./pages/Disputes";
 import NewDispute from "./pages/NewDispute";
 import Reports from "./pages/Reports";
-import Users from "./pages/Users";
+import SettlementReports from "./pages/SettlementReports";
+import AdminUsers from "./pages/AdminUsers";
+import AdminRoles from "./pages/AdminRoles";
 import NotificationsPage from "./pages/NotificationsPage";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
@@ -50,7 +52,9 @@ const App = () => (
                     <Route path="/disputes" element={<Disputes />} />
                     <Route path="/disputes/new" element={<NewDispute />} />
                     <Route path="/reports" element={<Reports />} />
-                    <Route path="/users" element={<Users />} />
+                    <Route path="/reports/settlements" element={<SettlementReports />} />
+                    <Route path="/admin/users" element={<AdminUsers />} />
+                    <Route path="/admin/roles" element={<AdminRoles />} />
                     <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="*" element={<NotFound />} />
