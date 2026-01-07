@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useRolesStore } from "@/stores/rolesStore";
+import { useApprovalsStore } from "@/stores/approvalsStore";
 
 interface AdminUser {
   id: string;
@@ -131,6 +132,7 @@ const userTypeConfig: Record<string, { label: string; className: string }> = {
 
 export default function AdminUsers() {
   const { getRoleNames } = useRolesStore();
+  const { addApproval } = useApprovalsStore();
   const roleNames = getRoleNames();
   const [users, setUsers] = useState<AdminUser[]>(mockUsers);
   const [searchQuery, setSearchQuery] = useState("");
@@ -164,26 +166,31 @@ export default function AdminUsers() {
       return;
     }
 
-    const user: AdminUser = {
-      id: String(users.length + 1),
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      username: newUser.username,
-      email: newUser.email,
-      phoneNumber: newUser.phoneNumber,
-      role: newUser.role,
-      userType: newUser.userType,
-      status: "Pending",
-      lastLogin: "-",
-      createdAt: new Date().toISOString().split("T")[0],
-    };
+    // Submit to approvals instead of creating directly
+    const approvalId = addApproval({
+      type: "user_create",
+      requestedBy: "Current User",
+      requestedByEmail: "admin@pavilion.com",
+      subject: `New User Request - ${newUser.firstName} ${newUser.lastName}`,
+      description: `Request to create a new ${newUser.userType} user with ${newUser.role} role`,
+      status: "pending",
+      priority: newUser.userType === "Admin" ? "high" : "medium",
+      metadata: {
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        username: newUser.username,
+        email: newUser.email,
+        phoneNumber: newUser.phoneNumber,
+        role: newUser.role,
+        userType: newUser.userType,
+      },
+    });
 
-    setUsers([...users, user]);
     setNewUser({ firstName: "", lastName: "", username: "", email: "", password: "", phoneNumber: "", role: "", userType: "Regular" });
     setDialogOpen(false);
     toast({
-      title: "User Created",
-      description: `An invitation has been sent to ${user.email}`,
+      title: "Request Submitted",
+      description: `User creation request (${approvalId}) has been submitted for approval.`,
     });
   };
 
