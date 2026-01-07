@@ -49,11 +49,14 @@ const transactionData = [
 
 // Settlement Report Data
 const settlementData = [
-  { id: "STL-2024010501", date: "2024-01-05", transactionCount: 1248, grossAmount: 45890000, fees: 458900, netAmount: 45431100, status: "completed" },
-  { id: "STL-2024010401", date: "2024-01-04", transactionCount: 1156, grossAmount: 38750000, fees: 387500, netAmount: 38362500, status: "completed" },
-  { id: "STL-2024010301", date: "2024-01-03", transactionCount: 987, grossAmount: 32100000, fees: 321000, netAmount: 31779000, status: "completed" },
-  { id: "STL-2024010201", date: "2024-01-02", transactionCount: 1089, grossAmount: 41230000, fees: 412300, netAmount: 40817700, status: "pending" },
-  { id: "STL-2024010101", date: "2024-01-01", transactionCount: 756, grossAmount: 28900000, fees: 289000, netAmount: 28611000, status: "completed" },
+  { id: "STL-001", transactionDate: "2024-01-05", merchantName: "Amazon Nigeria", terminalId: "TRM-45821", transactionAmount: 125000, charges: 1875, settledAmount: 123125, status: "settled" },
+  { id: "STL-002", transactionDate: "2024-01-05", merchantName: "Shoprite Holdings", terminalId: "TRM-33127", transactionAmount: 89500, charges: 1343, settledAmount: 88157, status: "settled" },
+  { id: "STL-003", transactionDate: "2024-01-05", merchantName: "GTBank ATM", terminalId: "ATM-10042", transactionAmount: 200000, charges: 350, settledAmount: 199650, status: "settled" },
+  { id: "STL-004", transactionDate: "2024-01-04", merchantName: "Jumia Nigeria", terminalId: "TRM-78234", transactionAmount: 67800, charges: 1017, settledAmount: 66783, status: "settled" },
+  { id: "STL-005", transactionDate: "2024-01-04", merchantName: "Uber Technologies", terminalId: "TRM-99012", transactionAmount: 15600, charges: 234, settledAmount: 15366, status: "pending" },
+  { id: "STL-006", transactionDate: "2024-01-04", merchantName: "Netflix Inc", terminalId: "TRM-55678", transactionAmount: 4900, charges: 74, settledAmount: 4826, status: "settled" },
+  { id: "STL-007", transactionDate: "2024-01-03", merchantName: "Chicken Republic", terminalId: "TRM-22345", transactionAmount: 8200, charges: 123, settledAmount: 8077, status: "settled" },
+  { id: "STL-008", transactionDate: "2024-01-03", merchantName: "Total Energies", terminalId: "TRM-67890", transactionAmount: 45000, charges: 675, settledAmount: 44325, status: "pending" },
 ];
 
 // Issuing Fee Report Data
@@ -185,26 +188,26 @@ export default function Reports() {
     <table className="data-table">
       <thead>
         <tr>
-          <th>Settlement ID</th>
-          <th>Date</th>
-          <th>Transactions</th>
-          <th>Gross Amount</th>
-          <th>Fees</th>
-          <th>Net Amount</th>
+          <th>Transaction Date</th>
+          <th>Merchant Name</th>
+          <th>Terminal ID</th>
+          <th>Transaction Amount</th>
+          <th>Charges</th>
+          <th>Settled Amount</th>
           <th>Status</th>
         </tr>
       </thead>
       <tbody>
         {settlementData.map((stl) => (
           <tr key={stl.id}>
-            <td><span className="font-mono text-sm text-foreground">{stl.id}</span></td>
-            <td className="text-muted-foreground">{stl.date}</td>
-            <td className="text-foreground">{stl.transactionCount.toLocaleString()}</td>
-            <td className="font-medium text-foreground">₦{stl.grossAmount.toLocaleString()}</td>
-            <td className="text-muted-foreground">₦{stl.fees.toLocaleString()}</td>
-            <td className="font-medium text-success">₦{stl.netAmount.toLocaleString()}</td>
+            <td className="text-muted-foreground">{stl.transactionDate}</td>
+            <td className="text-foreground font-medium">{stl.merchantName}</td>
+            <td className="font-mono text-sm text-muted-foreground">{stl.terminalId}</td>
+            <td className="font-medium text-foreground">₦{stl.transactionAmount.toLocaleString()}</td>
+            <td className="text-muted-foreground">₦{stl.charges.toLocaleString()}</td>
+            <td className="font-medium text-success">₦{stl.settledAmount.toLocaleString()}</td>
             <td>
-              <span className={cn("status-badge", stl.status === "completed" ? "status-active" : "status-paused")}>
+              <span className={cn("status-badge", stl.status === "settled" ? "status-active" : "status-paused")}>
                 {stl.status}
               </span>
             </td>
