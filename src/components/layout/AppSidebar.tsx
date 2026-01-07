@@ -8,7 +8,6 @@ import {
   BarChart3,
   Users,
   Bell,
-  Settings,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -17,6 +16,7 @@ import {
   Shield,
   ClipboardCheck,
   DollarSign,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -48,7 +48,12 @@ const adminNavigation = [
 
 const secondaryNavigation: { name: string; href: string; icon: typeof Bell }[] = [];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [cardManagementOpen, setCardManagementOpen] = useState(true);
   const location = useLocation();
@@ -67,13 +72,14 @@ export function AppSidebar() {
 
   const isCardManagementActive = cardManagementNav.some(item => isActive(item.href));
 
-  return (
-    <aside
-      className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-sidebar transition-all duration-300 flex flex-col",
-        collapsed ? "w-16" : "w-64"
-      )}
-    >
+  const handleNavClick = () => {
+    if (onMobileClose) {
+      onMobileClose();
+    }
+  };
+
+  const sidebarContent = (
+    <>
       {/* Logo */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed && (
@@ -91,6 +97,15 @@ export function AppSidebar() {
           <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center mx-auto">
             <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
           </div>
+        )}
+        {/* Mobile close button */}
+        {onMobileClose && (
+          <button
+            onClick={onMobileClose}
+            className="lg:hidden p-1.5 rounded-lg hover:bg-sidebar-accent transition-colors"
+          >
+            <X className="w-5 h-5 text-sidebar-foreground" />
+          </button>
         )}
       </div>
 
@@ -116,6 +131,7 @@ export function AppSidebar() {
             <Link
               key={item.name}
               to={item.href}
+              onClick={handleNavClick}
               className={cn(
                 "nav-item",
                 isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
@@ -130,12 +146,12 @@ export function AppSidebar() {
         {/* Card Management Section */}
         <div className="pt-2">
           {collapsed ? (
-            // Collapsed state - show icons only
             <div className="space-y-1">
               {cardManagementNav.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
+                  onClick={handleNavClick}
                   className={cn(
                     "nav-item",
                     isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
@@ -146,7 +162,6 @@ export function AppSidebar() {
               ))}
             </div>
           ) : (
-            // Expanded state - show collapsible group
             <Collapsible open={cardManagementOpen} onOpenChange={setCardManagementOpen}>
               <CollapsibleTrigger className={cn(
                 "nav-item w-full justify-between",
@@ -166,6 +181,7 @@ export function AppSidebar() {
                   <Link
                     key={item.name}
                     to={item.href}
+                    onClick={handleNavClick}
                     className={cn(
                       "nav-item",
                       isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
@@ -186,6 +202,7 @@ export function AppSidebar() {
             <Link
               key={item.name}
               to={item.href}
+              onClick={handleNavClick}
               className={cn(
                 "nav-item",
                 isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
@@ -207,6 +224,7 @@ export function AppSidebar() {
             <Link
               key={item.name}
               to={item.href}
+              onClick={handleNavClick}
               className={cn(
                 "nav-item",
                 isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
@@ -229,6 +247,7 @@ export function AppSidebar() {
               <Link
                 key={item.name}
                 to={item.href}
+                onClick={handleNavClick}
                 className={cn(
                   "nav-item",
                   isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
@@ -246,7 +265,7 @@ export function AppSidebar() {
       <div className="p-3 border-t border-sidebar-border">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="nav-item nav-item-inactive w-full justify-center"
+          className="nav-item nav-item-inactive w-full justify-center hidden lg:flex"
         >
           {collapsed ? (
             <ChevronRight className="w-5 h-5" />
@@ -267,6 +286,38 @@ export function AppSidebar() {
           </button>
         )}
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside
+        className={cn(
+          "fixed left-0 top-0 z-40 h-screen bg-sidebar transition-all duration-300 flex-col hidden lg:flex",
+          collapsed ? "w-16" : "w-64"
+        )}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={onMobileClose}
+        />
+      )}
+
+      {/* Mobile Sidebar */}
+      <aside
+        className={cn(
+          "fixed left-0 top-0 z-50 h-screen w-64 bg-sidebar transition-transform duration-300 flex flex-col lg:hidden",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }
