@@ -32,8 +32,18 @@ interface NavItem {
   requiredPrivileges: string[];
 }
 
-const navigation: NavItem[] = [
+// Order: Dashboard → Admin → Reports → Card Management → Setup → Disputes
+const dashboardNav: NavItem[] = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard, requiredPrivileges: ["dashboard.view"] },
+];
+
+const adminNavigation: NavItem[] = [
+  { name: "Users", href: "/admin/users", icon: Users, requiredPrivileges: ["admin.users.view"] },
+  { name: "Roles", href: "/admin/roles", icon: Shield, requiredPrivileges: ["admin.roles.view"] },
+];
+
+const reportsNav: NavItem[] = [
+  { name: "Reports", href: "/reports", icon: BarChart3, requiredPrivileges: ["reports.view"] },
 ];
 
 const cardManagementNav: NavItem[] = [
@@ -41,14 +51,8 @@ const cardManagementNav: NavItem[] = [
   { name: "Cards", href: "/cards", icon: CreditCard, requiredPrivileges: ["cards.view"] },
 ];
 
-const operationsNav: NavItem[] = [
-  { name: "Reports", href: "/reports", icon: BarChart3, requiredPrivileges: ["reports.view"] },
+const setupNav: NavItem[] = [
   { name: "Setup", href: "/setup", icon: Settings, requiredPrivileges: ["setup.view"] },
-];
-
-const adminNavigation: NavItem[] = [
-  { name: "Users", href: "/admin/users", icon: Users, requiredPrivileges: ["admin.users.view"] },
-  { name: "Roles", href: "/admin/roles", icon: Shield, requiredPrivileges: ["admin.roles.view"] },
 ];
 
 const disputesNav: NavItem[] = [
@@ -58,10 +62,11 @@ const disputesNav: NavItem[] = [
 interface AppSidebarProps {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
+  collapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
+export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCollapsedChange }: AppSidebarProps) {
   const [cardManagementOpen, setCardManagementOpen] = useState(true);
   const [adminOpen, setAdminOpen] = useState(true);
   const location = useLocation();
@@ -105,10 +110,11 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
     return items.filter(item => hasAnyPrivilege(item.requiredPrivileges));
   };
 
-  const filteredNavigation = filterNavItems(navigation);
-  const filteredCardManagement = filterNavItems(cardManagementNav);
-  const filteredOperations = filterNavItems(operationsNav);
+  const filteredDashboard = filterNavItems(dashboardNav);
   const filteredAdmin = filterNavItems(adminNavigation);
+  const filteredReports = filterNavItems(reportsNav);
+  const filteredCardManagement = filterNavItems(cardManagementNav);
+  const filteredSetup = filterNavItems(setupNav);
   const filteredDisputes = filterNavItems(disputesNav);
 
   const isCardManagementActive = filteredCardManagement.some(item => isActive(item.href));
@@ -168,8 +174,9 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
 
       {/* Main Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {/* 1. Dashboard */}
         <div className="space-y-1">
-          {filteredNavigation.map((item) => (
+          {filteredDashboard.map((item) => (
             <Link
               key={item.name}
               to={item.href}
@@ -185,82 +192,7 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
           ))}
         </div>
 
-        {/* Card Management Section */}
-        {filteredCardManagement.length > 0 && (
-          <div className="pt-2">
-            {collapsed ? (
-              <div className="space-y-1">
-                {filteredCardManagement.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={handleNavClick}
-                    className={cn(
-                      "nav-item",
-                      isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
-                    )}
-                  >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <Collapsible open={cardManagementOpen} onOpenChange={setCardManagementOpen}>
-                <CollapsibleTrigger className={cn(
-                  "nav-item w-full justify-between",
-                  isCardManagementActive ? "nav-item-active" : "nav-item-inactive"
-                )}>
-                  <div className="flex items-center gap-3">
-                    <CreditCard className="w-5 h-5 flex-shrink-0" />
-                    <span>Card Management</span>
-                  </div>
-                  <ChevronDown className={cn(
-                    "w-4 h-4 transition-transform",
-                    cardManagementOpen && "rotate-180"
-                  )} />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-4 mt-1 space-y-1">
-                  {filteredCardManagement.map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      onClick={handleNavClick}
-                      className={cn(
-                        "nav-item",
-                        isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
-                      )}
-                    >
-                      <item.icon className="w-5 h-5 flex-shrink-0" />
-                      <span>{item.name}</span>
-                    </Link>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-          </div>
-        )}
-
-        {/* Operations */}
-        {filteredOperations.length > 0 && (
-          <div className="pt-2 space-y-1">
-            {filteredOperations.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                onClick={handleNavClick}
-                className={cn(
-                  "nav-item",
-                  isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
-                )}
-              >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
-                {!collapsed && <span>{item.name}</span>}
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* Admin Section */}
+        {/* 2. Admin Section */}
         {filteredAdmin.length > 0 && (
           <div className="pt-2">
             {collapsed ? (
@@ -315,7 +247,102 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
           </div>
         )}
 
-        {/* Disputes - Last item */}
+        {/* 3. Reports */}
+        {filteredReports.length > 0 && (
+          <div className="pt-2 space-y-1">
+            {filteredReports.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={handleNavClick}
+                className={cn(
+                  "nav-item",
+                  isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                )}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                {!collapsed && <span>{item.name}</span>}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* 4. Card Management Section */}
+        {filteredCardManagement.length > 0 && (
+          <div className="pt-2">
+            {collapsed ? (
+              <div className="space-y-1">
+                {filteredCardManagement.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={handleNavClick}
+                    className={cn(
+                      "nav-item",
+                      isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                    )}
+                  >
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Collapsible open={cardManagementOpen} onOpenChange={setCardManagementOpen}>
+                <CollapsibleTrigger className={cn(
+                  "nav-item w-full justify-between",
+                  isCardManagementActive ? "nav-item-active" : "nav-item-inactive"
+                )}>
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="w-5 h-5 flex-shrink-0" />
+                    <span>Card Management</span>
+                  </div>
+                  <ChevronDown className={cn(
+                    "w-4 h-4 transition-transform",
+                    cardManagementOpen && "rotate-180"
+                  )} />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 mt-1 space-y-1">
+                  {filteredCardManagement.map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      onClick={handleNavClick}
+                      className={cn(
+                        "nav-item",
+                        isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                      )}
+                    >
+                      <item.icon className="w-5 h-5 flex-shrink-0" />
+                      <span>{item.name}</span>
+                    </Link>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+          </div>
+        )}
+
+        {/* 5. Setup */}
+        {filteredSetup.length > 0 && (
+          <div className="pt-2 space-y-1">
+            {filteredSetup.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={handleNavClick}
+                className={cn(
+                  "nav-item",
+                  isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                )}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                {!collapsed && <span>{item.name}</span>}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* 6. Disputes - Last item */}
         {filteredDisputes.length > 0 && (
           <div className="pt-2 space-y-1">
             {filteredDisputes.map((item) => (
@@ -339,7 +366,7 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
       {/* Footer */}
       <div className="p-3 border-t border-sidebar-border">
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => onCollapsedChange?.(!collapsed)}
           className="nav-item nav-item-inactive w-full justify-center hidden lg:flex"
         >
           {collapsed ? (
