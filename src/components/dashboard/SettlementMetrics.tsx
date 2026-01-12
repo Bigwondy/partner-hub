@@ -67,21 +67,6 @@ const additionalMetrics = [
 export function SettlementMetrics() {
   return (
     <div className="space-y-6">
-      {/* Introduction */}
-      <div className="card-elevated p-5 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
-        <div className="flex items-start gap-4">
-          <div className="p-3 rounded-xl bg-primary/10">
-            <TrendingUp className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-1">Settlement Overview</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              A comprehensive overview of the financial facets related to transactions within Pavilion FIP. 
-              Monitor settlement activities, gauge financial health, and enhance your financial operations.
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* Primary Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
