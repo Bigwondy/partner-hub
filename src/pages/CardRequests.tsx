@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Plus, Search, Filter, Download, Eye, MoreHorizontal, X, FileSpreadsheet, Calendar, CreditCard } from "lucide-react";
+import { Plus, Search, Filter, Download, Eye, MoreHorizontal, FileSpreadsheet, CreditCard, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 const requests = [
   {
@@ -23,6 +38,7 @@ const requests = [
     cardProfile: "Visa Gold",
     quantity: 100,
     type: "embossed",
+    category: "physical",
     status: "in_progress",
     createdAt: "2024-01-05 14:32",
     requestedBy: "Sarah Williams",
@@ -36,6 +52,7 @@ const requests = [
     cardProfile: "Mastercard Platinum",
     quantity: 50,
     type: "embossed",
+    category: "physical",
     status: "ready",
     createdAt: "2024-01-05 11:15",
     requestedBy: "John Doe",
@@ -49,6 +66,7 @@ const requests = [
     cardProfile: "Verve Standard",
     quantity: 200,
     type: "instant",
+    category: "physical",
     status: "pending",
     createdAt: "2024-01-04 16:48",
     requestedBy: "Sarah Williams",
@@ -62,6 +80,7 @@ const requests = [
     cardProfile: "Visa Classic",
     quantity: 25,
     type: "virtual",
+    category: "virtual",
     status: "ready",
     createdAt: "2024-01-04 09:22",
     requestedBy: "John Doe",
@@ -75,6 +94,7 @@ const requests = [
     cardProfile: "Mastercard Standard",
     quantity: 150,
     type: "embossed",
+    category: "physical",
     status: "failed",
     createdAt: "2024-01-03 13:05",
     requestedBy: "Sarah Williams",
@@ -88,12 +108,27 @@ const requests = [
     cardProfile: "Visa Gold",
     quantity: 75,
     type: "instant",
+    category: "physical",
     status: "in_progress",
     createdAt: "2024-01-03 10:41",
     requestedBy: "John Doe",
     approvedBy: "Sarah Williams",
     approvedAt: "2024-01-03 11:15",
     notes: "Regular stock order",
+  },
+  {
+    id: "REQ-2024-001228",
+    batchNumber: "BATCH-2024-0083",
+    cardProfile: "Virtual Business",
+    quantity: 500,
+    type: "virtual",
+    category: "virtual",
+    status: "ready",
+    createdAt: "2024-01-02 14:00",
+    requestedBy: "Sarah Williams",
+    approvedBy: "John Doe",
+    approvedAt: "2024-01-02 15:00",
+    notes: "Virtual cards for SME program",
   },
 ];
 
@@ -114,11 +149,116 @@ export default function CardRequests() {
   const [searchQuery, setSearchQuery] = useState("");
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<typeof requests[0] | null>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    status: "all",
+    type: "all",
+    cardProfile: "all",
+  });
 
   const handleViewDetails = (request: typeof requests[0]) => {
     setSelectedRequest(request);
     setDetailsOpen(true);
   };
+
+  const applyFilters = (data: typeof requests, category: string) => {
+    return data.filter((request) => {
+      const matchesCategory = category === "all" || request.category === category;
+      const matchesSearch = 
+        request.batchNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        request.cardProfile.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = filters.status === "all" || request.status === filters.status;
+      const matchesType = filters.type === "all" || request.type === filters.type;
+      const matchesProfile = filters.cardProfile === "all" || request.cardProfile === filters.cardProfile;
+      
+      return matchesCategory && matchesSearch && matchesStatus && matchesType && matchesProfile;
+    });
+  };
+
+  const clearFilters = () => {
+    setFilters({ status: "all", type: "all", cardProfile: "all" });
+  };
+
+  const hasActiveFilters = filters.status !== "all" || filters.type !== "all" || filters.cardProfile !== "all";
+
+  const physicalRequests = applyFilters(requests, "physical");
+  const virtualRequests = applyFilters(requests, "virtual");
+  const allFiltered = applyFilters(requests, "all");
+
+  const uniqueProfiles = [...new Set(requests.map(r => r.cardProfile))];
+
+  const RequestsTable = ({ data }: { data: typeof requests }) => (
+    <div className="card-elevated overflow-hidden">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Date Created</th>
+            <th>Batch Number</th>
+            <th>Card Profile</th>
+            <th>Quantity</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th className="w-16"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((request) => (
+            <tr key={request.id}>
+              <td className="text-muted-foreground text-sm">{request.createdAt}</td>
+              <td>
+                <span className="font-medium text-foreground">{request.batchNumber}</span>
+              </td>
+              <td className="text-foreground">{request.cardProfile}</td>
+              <td className="text-muted-foreground">{request.quantity.toLocaleString()}</td>
+              <td>
+                <Badge className={typeConfig[request.type].className}>
+                  {typeConfig[request.type].label}
+                </Badge>
+              </td>
+              <td>
+                <Badge className={statusConfig[request.status].className}>
+                  {statusConfig[request.status].label}
+                </Badge>
+              </td>
+              <td>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="p-2 hover:bg-muted rounded-lg">
+                    <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleViewDetails(request)}>
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Details
+                    </DropdownMenuItem>
+                    {request.status === "pending" && (
+                      <DropdownMenuItem className="text-destructive">
+                        Cancel Request
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+        <p className="text-sm text-muted-foreground">
+          Showing 1-{data.length} of {data.length} requests
+        </p>
+        <div className="flex gap-2">
+          <button className="btn-ghost text-sm" disabled>
+            Previous
+          </button>
+          <button className="btn-ghost text-sm">
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -150,10 +290,73 @@ export default function CardRequests() {
             />
           </div>
           <div className="flex gap-2">
-            <button className="btn-secondary">
-              <Filter className="w-4 h-4" />
-              Filters
-            </button>
+            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+              <PopoverTrigger asChild>
+                <button className={`btn-secondary ${hasActiveFilters ? 'ring-2 ring-accent' : ''}`}>
+                  <Filter className="w-4 h-4" />
+                  Filters
+                  {hasActiveFilters && (
+                    <span className="ml-1 w-2 h-2 rounded-full bg-accent" />
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Filters</h4>
+                    {hasActiveFilters && (
+                      <Button variant="ghost" size="sm" onClick={clearFilters}>
+                        <X className="w-3 h-3 mr-1" />
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Status</Label>
+                    <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="ready">Ready</SelectItem>
+                        <SelectItem value="failed">Failed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Type</Label>
+                    <Select value={filters.type} onValueChange={(value) => setFilters({ ...filters, type: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="instant">Instant</SelectItem>
+                        <SelectItem value="embossed">Embossed</SelectItem>
+                        <SelectItem value="virtual">Virtual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Card Profile</Label>
+                    <Select value={filters.cardProfile} onValueChange={(value) => setFilters({ ...filters, cardProfile: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All profiles" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Profiles</SelectItem>
+                        {uniqueProfiles.map((profile) => (
+                          <SelectItem key={profile} value={profile}>{profile}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
             <button className="btn-secondary">
               <Download className="w-4 h-4" />
               Export
@@ -162,77 +365,26 @@ export default function CardRequests() {
         </div>
       </div>
 
-      {/* Requests Table */}
-      <div className="card-elevated overflow-hidden">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Date Created</th>
-              <th>Batch Number</th>
-              <th>Card Profile</th>
-              <th>Quantity</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th className="w-16"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((request) => (
-              <tr key={request.id}>
-                <td className="text-muted-foreground text-sm">{request.createdAt}</td>
-                <td>
-                  <span className="font-medium text-foreground">{request.batchNumber}</span>
-                </td>
-                <td className="text-foreground">{request.cardProfile}</td>
-                <td className="text-muted-foreground">{request.quantity.toLocaleString()}</td>
-                <td>
-                  <Badge className={typeConfig[request.type].className}>
-                    {typeConfig[request.type].label}
-                  </Badge>
-                </td>
-                <td>
-                  <Badge className={statusConfig[request.status].className}>
-                    {statusConfig[request.status].label}
-                  </Badge>
-                </td>
-                <td>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="p-2 hover:bg-muted rounded-lg">
-                      <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleViewDetails(request)}>
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Details
-                      </DropdownMenuItem>
-                      {request.status === "pending" && (
-                        <DropdownMenuItem className="text-destructive">
-                          Cancel Request
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Tabs for Physical and Virtual Cards */}
+      <Tabs defaultValue="all" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="all">All Requests ({allFiltered.length})</TabsTrigger>
+          <TabsTrigger value="physical">Physical Cards ({physicalRequests.length})</TabsTrigger>
+          <TabsTrigger value="virtual">Virtual Cards ({virtualRequests.length})</TabsTrigger>
+        </TabsList>
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-          <p className="text-sm text-muted-foreground">
-            Showing 1-6 of 234 requests
-          </p>
-          <div className="flex gap-2">
-            <button className="btn-ghost text-sm" disabled>
-              Previous
-            </button>
-            <button className="btn-ghost text-sm">
-              Next
-            </button>
-          </div>
-        </div>
-      </div>
+        <TabsContent value="all">
+          <RequestsTable data={allFiltered} />
+        </TabsContent>
+
+        <TabsContent value="physical">
+          <RequestsTable data={physicalRequests} />
+        </TabsContent>
+
+        <TabsContent value="virtual">
+          <RequestsTable data={virtualRequests} />
+        </TabsContent>
+      </Tabs>
 
       {/* Request Details Sheet */}
       <Sheet open={detailsOpen} onOpenChange={setDetailsOpen}>

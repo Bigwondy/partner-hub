@@ -7,14 +7,12 @@ import {
   AlertTriangle,
   BarChart3,
   Users,
-  Bell,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
   LogOut,
   Building2,
   Shield,
-  ClipboardCheck,
   Settings,
   X,
   LucideIcon,
@@ -44,8 +42,6 @@ const cardManagementNav: NavItem[] = [
 ];
 
 const operationsNav: NavItem[] = [
-  { name: "Disputes", href: "/disputes", icon: AlertTriangle, requiredPrivileges: ["disputes.view"] },
-  { name: "Approvals", href: "/approvals", icon: ClipboardCheck, requiredPrivileges: ["approvals.view"] },
   { name: "Reports", href: "/reports", icon: BarChart3, requiredPrivileges: ["reports.view"] },
   { name: "Setup", href: "/setup", icon: Settings, requiredPrivileges: ["setup.view"] },
 ];
@@ -55,7 +51,9 @@ const adminNavigation: NavItem[] = [
   { name: "Roles", href: "/admin/roles", icon: Shield, requiredPrivileges: ["admin.roles.view"] },
 ];
 
-const secondaryNavigation: NavItem[] = [];
+const disputesNav: NavItem[] = [
+  { name: "Disputes", href: "/disputes", icon: AlertTriangle, requiredPrivileges: ["disputes.view"] },
+];
 
 interface AppSidebarProps {
   mobileOpen?: boolean;
@@ -65,6 +63,7 @@ interface AppSidebarProps {
 export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [cardManagementOpen, setCardManagementOpen] = useState(true);
+  const [adminOpen, setAdminOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, setUser, hasAnyPrivilege } = useAuthStore();
@@ -110,9 +109,10 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   const filteredCardManagement = filterNavItems(cardManagementNav);
   const filteredOperations = filterNavItems(operationsNav);
   const filteredAdmin = filterNavItems(adminNavigation);
-  const filteredSecondary = filterNavItems(secondaryNavigation);
+  const filteredDisputes = filterNavItems(disputesNav);
 
   const isCardManagementActive = filteredCardManagement.some(item => isActive(item.href));
+  const isAdminActive = filteredAdmin.some(item => isActive(item.href));
 
   const handleNavClick = () => {
     if (onMobileClose) {
@@ -260,38 +260,65 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
           </div>
         )}
 
+        {/* Admin Section */}
         {filteredAdmin.length > 0 && (
-          <div className="pt-6">
-            {!collapsed && (
-              <p className="px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider">
-                Admin
-              </p>
+          <div className="pt-2">
+            {collapsed ? (
+              <div className="space-y-1">
+                {filteredAdmin.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={handleNavClick}
+                    className={cn(
+                      "nav-item",
+                      isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                    )}
+                  >
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Collapsible open={adminOpen} onOpenChange={setAdminOpen}>
+                <CollapsibleTrigger className={cn(
+                  "nav-item w-full justify-between",
+                  isAdminActive ? "nav-item-active" : "nav-item-inactive"
+                )}>
+                  <div className="flex items-center gap-3">
+                    <Shield className="w-5 h-5 flex-shrink-0" />
+                    <span>Admin</span>
+                  </div>
+                  <ChevronDown className={cn(
+                    "w-4 h-4 transition-transform",
+                    adminOpen && "rotate-180"
+                  )} />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 mt-1 space-y-1">
+                  {filteredAdmin.map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      onClick={handleNavClick}
+                      className={cn(
+                        "nav-item",
+                        isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                      )}
+                    >
+                      <item.icon className="w-5 h-5 flex-shrink-0" />
+                      <span>{item.name}</span>
+                    </Link>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
             )}
-            {filteredAdmin.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                onClick={handleNavClick}
-                className={cn(
-                  "nav-item",
-                  isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
-                )}
-              >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
-                {!collapsed && <span>{item.name}</span>}
-              </Link>
-            ))}
           </div>
         )}
 
-        {filteredSecondary.length > 0 && (
-          <div className="pt-4">
-            {!collapsed && (
-              <p className="px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider">
-                Support
-              </p>
-            )}
-            {filteredSecondary.map((item) => (
+        {/* Disputes - Last item */}
+        {filteredDisputes.length > 0 && (
+          <div className="pt-2 space-y-1">
+            {filteredDisputes.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}

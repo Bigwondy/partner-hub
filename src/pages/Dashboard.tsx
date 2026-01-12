@@ -1,4 +1,4 @@
-import { CreditCard, ArrowUpRight, AlertTriangle, Clock } from "lucide-react";
+import { CreditCard, ArrowUpRight, AlertTriangle, Clock, TrendingUp, TrendingDown, CheckCircle, XCircle } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { TransactionChart } from "@/components/dashboard/TransactionChart";
 import { CardStatusChart } from "@/components/dashboard/CardStatusChart";
@@ -25,6 +25,7 @@ export default function Dashboard() {
         </TabsList>
 
         <TabsContent value="transactions" className="space-y-6">
+          {/* Primary Metrics - First Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricCard
               title="Active Cards"
@@ -32,13 +33,6 @@ export default function Dashboard() {
               change={12.5}
               icon={<CreditCard className="w-5 h-5 text-accent" />}
               iconBg="bg-accent/10"
-            />
-            <MetricCard
-              title="Transactions (MTD)"
-              value="₦89.4M"
-              change={8.2}
-              icon={<ArrowUpRight className="w-5 h-5 text-success" />}
-              iconBg="bg-success/10"
             />
             <MetricCard
               title="Pending Requests"
@@ -52,6 +46,49 @@ export default function Dashboard() {
               value="7"
               change={-15.3}
               icon={<AlertTriangle className="w-5 h-5 text-destructive" />}
+              iconBg="bg-destructive/10"
+            />
+            <MetricCard
+              title="Monthly Growth"
+              value="+18.2%"
+              change={3.4}
+              icon={<TrendingUp className="w-5 h-5 text-success" />}
+              iconBg="bg-success/10"
+            />
+          </div>
+
+          {/* Transaction Metrics - Second Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricCard
+              title="Transaction Volume"
+              value="12,847"
+              change={8.2}
+              changeLabel="vs last month"
+              icon={<ArrowUpRight className="w-5 h-5 text-primary" />}
+              iconBg="bg-primary/10"
+            />
+            <MetricCard
+              title="Transaction Value"
+              value="₦89.4M"
+              change={15.7}
+              changeLabel="vs last month"
+              icon={<TrendingUp className="w-5 h-5 text-success" />}
+              iconBg="bg-success/10"
+            />
+            <MetricCard
+              title="Successful Transactions"
+              value="12,456"
+              change={9.1}
+              changeLabel="96.9% success rate"
+              icon={<CheckCircle className="w-5 h-5 text-success" />}
+              iconBg="bg-success/10"
+            />
+            <MetricCard
+              title="Failed Transactions"
+              value="391"
+              change={-12.3}
+              changeLabel="3.1% failure rate"
+              icon={<XCircle className="w-5 h-5 text-destructive" />}
               iconBg="bg-destructive/10"
             />
           </div>
