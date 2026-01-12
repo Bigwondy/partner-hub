@@ -15,7 +15,7 @@ import {
   Building2,
   Shield,
   ClipboardCheck,
-  DollarSign,
+  Settings,
   X,
   LucideIcon,
 } from "lucide-react";
@@ -47,7 +47,7 @@ const operationsNav: NavItem[] = [
   { name: "Disputes", href: "/disputes", icon: AlertTriangle, requiredPrivileges: ["disputes.view"] },
   { name: "Approvals", href: "/approvals", icon: ClipboardCheck, requiredPrivileges: ["approvals.view"] },
   { name: "Reports", href: "/reports", icon: BarChart3, requiredPrivileges: ["reports.view"] },
-  { name: "Fee Configuration", href: "/fees", icon: DollarSign, requiredPrivileges: ["fees.view"] },
+  { name: "Setup", href: "/setup", icon: Settings, requiredPrivileges: ["setup.view"] },
 ];
 
 const adminNavigation: NavItem[] = [
