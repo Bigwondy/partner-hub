@@ -1,307 +1,86 @@
 import { useState } from "react";
-import { FileText, Download, Calendar, Filter, ArrowUpRight, ArrowDownRight, TrendingUp } from "lucide-react";
+import { Download, Calendar, Filter, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { exportToCSV, exportToExcel, exportToPDF } from "@/lib/export";
-
-const reportTypes = [
-  {
-    id: "transactions",
-    name: "Transaction Report",
-    description: "Detailed transaction history with filters",
-    icon: ArrowUpRight,
-    color: "text-accent",
-    bgColor: "bg-accent/10",
-  },
-  {
-    id: "settlements",
-    name: "Settlement Report",
-    description: "Settlement summaries and reconciliation",
-    icon: ArrowDownRight,
-    color: "text-success",
-    bgColor: "bg-success/10",
-  },
-  {
-    id: "issuing_fees",
-    name: "Issuing Fee Report",
-    description: "Card issuance fees by status",
-    icon: FileText,
-    color: "text-info",
-    bgColor: "bg-info/10",
-  },
-  {
-    id: "all_fees",
-    name: "Comprehensive Fee Report",
-    description: "All fee categories combined",
-    icon: TrendingUp,
-    color: "text-warning",
-    bgColor: "bg-warning/10",
-  },
-];
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 // Transaction Report Data
 const transactionData = [
-  { id: "TXN-20240105-89432", cardMasked: "****4532", type: "Purchase", merchant: "Amazon.com", amount: 45000, fee: 450, status: "successful", date: "2024-01-05 14:32" },
-  { id: "TXN-20240105-89431", cardMasked: "****8921", type: "ATM Withdrawal", merchant: "GTBank ATM", amount: 100000, fee: 350, status: "successful", date: "2024-01-05 12:15" },
-  { id: "TXN-20240105-89430", cardMasked: "****1287", type: "Purchase", merchant: "Shoprite", amount: 32500, fee: 325, status: "successful", date: "2024-01-05 10:48" },
-  { id: "TXN-20240105-89429", cardMasked: "****6754", type: "Purchase", merchant: "Uber", amount: 5600, fee: 56, status: "declined", date: "2024-01-05 09:22" },
-  { id: "TXN-20240105-89428", cardMasked: "****3398", type: "Purchase", merchant: "Netflix", amount: 4900, fee: 49, status: "successful", date: "2024-01-05 08:05" },
+  { id: 1, date: "2024-01-05 14:32", terminalId: "TRM-45821", merchantId: "MRC-001", response: "Approved", responseCode: "00", rrn: "400512345678", pan: "****4532" },
+  { id: 2, date: "2024-01-05 12:15", terminalId: "TRM-33127", merchantId: "MRC-002", response: "Approved", responseCode: "00", rrn: "400512345679", pan: "****8921" },
+  { id: 3, date: "2024-01-05 10:48", terminalId: "TRM-78234", merchantId: "MRC-003", response: "Approved", responseCode: "00", rrn: "400512345680", pan: "****1287" },
+  { id: 4, date: "2024-01-05 09:22", terminalId: "TRM-99012", merchantId: "MRC-004", response: "Declined", responseCode: "51", rrn: "400512345681", pan: "****6754" },
+  { id: 5, date: "2024-01-05 08:05", terminalId: "TRM-55678", merchantId: "MRC-005", response: "Approved", responseCode: "00", rrn: "400512345682", pan: "****3398" },
+  { id: 6, date: "2024-01-04 16:45", terminalId: "TRM-22345", merchantId: "MRC-006", response: "Approved", responseCode: "00", rrn: "400512345683", pan: "****7812" },
+  { id: 7, date: "2024-01-04 14:30", terminalId: "TRM-67890", merchantId: "MRC-007", response: "Declined", responseCode: "14", rrn: "400512345684", pan: "****2341" },
+  { id: 8, date: "2024-01-04 11:20", terminalId: "TRM-11234", merchantId: "MRC-008", response: "Approved", responseCode: "00", rrn: "400512345685", pan: "****9087" },
 ];
 
 // Settlement Report Data
 const settlementData = [
-  { id: "STL-001", transactionDate: "2024-01-05", merchantName: "Amazon Nigeria", terminalId: "TRM-45821", transactionAmount: 125000, charges: 1875, settledAmount: 123125, status: "settled" },
-  { id: "STL-002", transactionDate: "2024-01-05", merchantName: "Shoprite Holdings", terminalId: "TRM-33127", transactionAmount: 89500, charges: 1343, settledAmount: 88157, status: "settled" },
-  { id: "STL-003", transactionDate: "2024-01-05", merchantName: "GTBank ATM", terminalId: "ATM-10042", transactionAmount: 200000, charges: 350, settledAmount: 199650, status: "settled" },
-  { id: "STL-004", transactionDate: "2024-01-04", merchantName: "Jumia Nigeria", terminalId: "TRM-78234", transactionAmount: 67800, charges: 1017, settledAmount: 66783, status: "settled" },
-  { id: "STL-005", transactionDate: "2024-01-04", merchantName: "Uber Technologies", terminalId: "TRM-99012", transactionAmount: 15600, charges: 234, settledAmount: 15366, status: "pending" },
-  { id: "STL-006", transactionDate: "2024-01-04", merchantName: "Netflix Inc", terminalId: "TRM-55678", transactionAmount: 4900, charges: 74, settledAmount: 4826, status: "settled" },
-  { id: "STL-007", transactionDate: "2024-01-03", merchantName: "Chicken Republic", terminalId: "TRM-22345", transactionAmount: 8200, charges: 123, settledAmount: 8077, status: "settled" },
-  { id: "STL-008", transactionDate: "2024-01-03", merchantName: "Total Energies", terminalId: "TRM-67890", transactionAmount: 45000, charges: 675, settledAmount: 44325, status: "pending" },
+  { id: 1, settlementDate: "2024-01-05", period: "Daily", accountNumber: "0123456789", amount: 125000, fee: 1875, quantity: 45, feeType: "Processing" },
+  { id: 2, settlementDate: "2024-01-05", period: "Daily", accountNumber: "9876543210", amount: 89500, fee: 1343, quantity: 32, feeType: "Settlement" },
+  { id: 3, settlementDate: "2024-01-05", period: "Daily", accountNumber: "5432109876", amount: 200000, fee: 350, quantity: 8, feeType: "Issuance" },
+  { id: 4, settlementDate: "2024-01-04", period: "Daily", accountNumber: "1357924680", amount: 67800, fee: 1017, quantity: 24, feeType: "ThreeDS" },
+  { id: 5, settlementDate: "2024-01-04", period: "Daily", accountNumber: "2468013579", amount: 15600, fee: 234, quantity: 12, feeType: "IRF" },
+  { id: 6, settlementDate: "2024-01-04", period: "Daily", accountNumber: "3692581470", amount: 4900, fee: 74, quantity: 5, feeType: "Safe token" },
+  { id: 7, settlementDate: "2024-01-03", period: "Daily", accountNumber: "7418529630", amount: 8200, fee: 123, quantity: 7, feeType: "Processing" },
+  { id: 8, settlementDate: "2024-01-03", period: "Daily", accountNumber: "8529637410", amount: 45000, fee: 675, quantity: 18, feeType: "Others" },
 ];
 
-// Issuing Fee Report Data
-const issuingFeeData = [
-  { id: "ISF-001", cardType: "Visa Debit", category: "Instant Card", issuedCount: 245, feePerCard: 2500, totalFees: 612500, partnerShare: 306250, bankShare: 306250, period: "Jan 2024" },
-  { id: "ISF-002", cardType: "Mastercard Prepaid", category: "Embossed Card", issuedCount: 128, feePerCard: 5000, totalFees: 640000, partnerShare: 320000, bankShare: 320000, period: "Jan 2024" },
-  { id: "ISF-003", cardType: "Visa Virtual", category: "Virtual Card", issuedCount: 512, feePerCard: 500, totalFees: 256000, partnerShare: 128000, bankShare: 128000, period: "Jan 2024" },
-  { id: "ISF-004", cardType: "Visa Debit", category: "Reissue", issuedCount: 67, feePerCard: 2000, totalFees: 134000, partnerShare: 67000, bankShare: 67000, period: "Jan 2024" },
-  { id: "ISF-005", cardType: "Mastercard Prepaid", category: "Instant Card", issuedCount: 189, feePerCard: 2500, totalFees: 472500, partnerShare: 236250, bankShare: 236250, period: "Jan 2024" },
+const feeTypeOptions = [
+  { value: "all", label: "All" },
+  { value: "processing", label: "Processing" },
+  { value: "settlement", label: "Settlement" },
+  { value: "issuance", label: "Issuance" },
+  { value: "threeds", label: "ThreeDS" },
+  { value: "irf", label: "IRF" },
+  { value: "safetoken", label: "Safe token" },
+  { value: "others", label: "Others" },
 ];
-
-// Comprehensive Fee Report Data
-const comprehensiveFeeData = [
-  { id: "FEE-001", category: "Card Issuance", subCategory: "Instant Cards", transactionCount: 434, grossFees: 1085000, partnerShare: 542500, bankShare: 542500, period: "Jan 2024" },
-  { id: "FEE-002", category: "Card Issuance", subCategory: "Embossed Cards", transactionCount: 128, grossFees: 640000, partnerShare: 320000, bankShare: 320000, period: "Jan 2024" },
-  { id: "FEE-003", category: "Card Issuance", subCategory: "Virtual Cards", transactionCount: 512, grossFees: 256000, partnerShare: 128000, bankShare: 128000, period: "Jan 2024" },
-  { id: "FEE-004", category: "Transaction Fees", subCategory: "POS Transactions", transactionCount: 8456, grossFees: 845600, partnerShare: 422800, bankShare: 422800, period: "Jan 2024" },
-  { id: "FEE-005", category: "Transaction Fees", subCategory: "ATM Withdrawals", transactionCount: 2341, grossFees: 819350, partnerShare: 409675, bankShare: 409675, period: "Jan 2024" },
-  { id: "FEE-006", category: "Transaction Fees", subCategory: "Online Purchases", transactionCount: 5678, grossFees: 567800, partnerShare: 283900, bankShare: 283900, period: "Jan 2024" },
-  { id: "FEE-007", category: "Maintenance Fees", subCategory: "Monthly Fees", transactionCount: 4520, grossFees: 452000, partnerShare: 226000, bankShare: 226000, period: "Jan 2024" },
-  { id: "FEE-008", category: "Other Fees", subCategory: "PIN Remail", transactionCount: 89, grossFees: 44500, partnerShare: 22250, bankShare: 22250, period: "Jan 2024" },
-];
-
-interface StatItem {
-  label: string;
-  value: string;
-  className?: string;
-}
-
-interface ReportStats {
-  stat1: StatItem;
-  stat2: StatItem;
-  stat3: StatItem;
-  stat4: StatItem;
-}
-
-const summaryStats: Record<string, ReportStats> = {
-  transactions: {
-    stat1: { label: "Total Transactions", value: "12,847" },
-    stat2: { label: "Total Value", value: "₦89.4M" },
-    stat3: { label: "Approval Rate", value: "96.2%", className: "text-success" },
-    stat4: { label: "Total Fees", value: "₦894,000" },
-  },
-  settlements: {
-    stat1: { label: "Total Settlements", value: "31" },
-    stat2: { label: "Gross Amount", value: "₦186.8M" },
-    stat3: { label: "Total Fees", value: "₦1.87M" },
-    stat4: { label: "Net Settled", value: "₦185M", className: "text-success" },
-  },
-  issuing_fees: {
-    stat1: { label: "Cards Issued", value: "1,141" },
-    stat2: { label: "Total Fees", value: "₦2.11M" },
-    stat3: { label: "Partner Share", value: "₦1.06M", className: "text-success" },
-    stat4: { label: "Bank Share", value: "₦1.06M" },
-  },
-  all_fees: {
-    stat1: { label: "Fee Categories", value: "8" },
-    stat2: { label: "Gross Fees", value: "₦4.71M" },
-    stat3: { label: "Partner Revenue", value: "₦2.35M", className: "text-success" },
-    stat4: { label: "Bank Revenue", value: "₦2.35M" },
-  },
-};
 
 export default function Reports() {
-  const [selectedReport, setSelectedReport] = useState("transactions");
+  const [activeTab, setActiveTab] = useState("transactions");
   const [dateRange, setDateRange] = useState("last_30_days");
+  const [feeTypeFilter, setFeeTypeFilter] = useState("all");
 
-  const getCurrentData = () => {
-    switch (selectedReport) {
-      case "transactions": return transactionData;
-      case "settlements": return settlementData;
-      case "issuing_fees": return issuingFeeData;
-      case "all_fees": return comprehensiveFeeData;
-      default: return transactionData;
-    }
+  const getFilteredSettlementData = () => {
+    if (feeTypeFilter === "all") return settlementData;
+    return settlementData.filter(
+      (item) => item.feeType.toLowerCase().replace(" ", "") === feeTypeFilter.toLowerCase()
+    );
   };
 
   const handleExportCSV = () => {
-    exportToCSV(getCurrentData(), `${selectedReport}-report`);
+    const data = activeTab === "transactions" ? transactionData : getFilteredSettlementData();
+    exportToCSV(data, `${activeTab}-report`);
   };
 
   const handleExportExcel = () => {
-    exportToExcel(getCurrentData(), `${selectedReport}-report`);
+    const data = activeTab === "transactions" ? transactionData : getFilteredSettlementData();
+    exportToExcel(data, `${activeTab}-report`);
   };
 
   const handleExportPDF = () => {
-    const reportTitle = reportTypes.find((r) => r.id === selectedReport)?.name || "Report";
-    exportToPDF(getCurrentData(), `${selectedReport}-report`, reportTitle);
+    const data = activeTab === "transactions" ? transactionData : getFilteredSettlementData();
+    const title = activeTab === "transactions" ? "Transaction Report" : "Settlement Report";
+    exportToPDF(data, `${activeTab}-report`, title);
   };
-
-  const currentStats = summaryStats[selectedReport as keyof typeof summaryStats];
-
-  const renderTransactionTable = () => (
-    <table className="data-table">
-      <thead>
-        <tr>
-          <th>Transaction ID</th>
-          <th>Card</th>
-          <th>Type</th>
-          <th>Merchant</th>
-          <th>Amount</th>
-          <th>Fee</th>
-          <th>Status</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        {transactionData.map((tx) => (
-          <tr key={tx.id}>
-            <td><span className="font-mono text-sm text-foreground">{tx.id}</span></td>
-            <td className="font-mono text-muted-foreground">{tx.cardMasked}</td>
-            <td className="text-muted-foreground">{tx.type}</td>
-            <td className="text-foreground">{tx.merchant}</td>
-            <td className="font-medium text-foreground">₦{tx.amount.toLocaleString()}</td>
-            <td className="text-muted-foreground">₦{tx.fee.toLocaleString()}</td>
-            <td>
-              <span className={cn("status-badge", tx.status === "successful" ? "status-active" : "status-blocked")}>
-                {tx.status}
-              </span>
-            </td>
-            <td className="text-sm text-muted-foreground">{tx.date}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-
-  const renderSettlementTable = () => (
-    <table className="data-table">
-      <thead>
-        <tr>
-          <th>Transaction Date</th>
-          <th>Merchant Name</th>
-          <th>Terminal ID</th>
-          <th>Transaction Amount</th>
-          <th>Charges</th>
-          <th>Settled Amount</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {settlementData.map((stl) => (
-          <tr key={stl.id}>
-            <td className="text-muted-foreground">{stl.transactionDate}</td>
-            <td className="text-foreground font-medium">{stl.merchantName}</td>
-            <td className="font-mono text-sm text-muted-foreground">{stl.terminalId}</td>
-            <td className="font-medium text-foreground">₦{stl.transactionAmount.toLocaleString()}</td>
-            <td className="text-muted-foreground">₦{stl.charges.toLocaleString()}</td>
-            <td className="font-medium text-success">₦{stl.settledAmount.toLocaleString()}</td>
-            <td>
-              <span className={cn("status-badge", stl.status === "settled" ? "status-active" : "status-paused")}>
-                {stl.status}
-              </span>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-
-  const renderIssuingFeeTable = () => (
-    <table className="data-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Card Type</th>
-          <th>Category</th>
-          <th>Cards Issued</th>
-          <th>Fee/Card</th>
-          <th>Total Fees</th>
-          <th>Partner Share</th>
-          <th>Bank Share</th>
-          <th>Period</th>
-        </tr>
-      </thead>
-      <tbody>
-        {issuingFeeData.map((fee) => (
-          <tr key={fee.id}>
-            <td><span className="font-mono text-sm text-foreground">{fee.id}</span></td>
-            <td className="text-foreground">{fee.cardType}</td>
-            <td className="text-muted-foreground">{fee.category}</td>
-            <td className="text-foreground">{fee.issuedCount}</td>
-            <td className="text-muted-foreground">₦{fee.feePerCard.toLocaleString()}</td>
-            <td className="font-medium text-foreground">₦{fee.totalFees.toLocaleString()}</td>
-            <td className="text-success">₦{fee.partnerShare.toLocaleString()}</td>
-            <td className="text-muted-foreground">₦{fee.bankShare.toLocaleString()}</td>
-            <td className="text-sm text-muted-foreground">{fee.period}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-
-  const renderComprehensiveFeeTable = () => (
-    <table className="data-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Category</th>
-          <th>Sub-Category</th>
-          <th>Count</th>
-          <th>Gross Fees</th>
-          <th>Partner Share</th>
-          <th>Bank Share</th>
-          <th>Period</th>
-        </tr>
-      </thead>
-      <tbody>
-        {comprehensiveFeeData.map((fee) => (
-          <tr key={fee.id}>
-            <td><span className="font-mono text-sm text-foreground">{fee.id}</span></td>
-            <td className="text-foreground font-medium">{fee.category}</td>
-            <td className="text-muted-foreground">{fee.subCategory}</td>
-            <td className="text-foreground">{fee.transactionCount.toLocaleString()}</td>
-            <td className="font-medium text-foreground">₦{fee.grossFees.toLocaleString()}</td>
-            <td className="text-success">₦{fee.partnerShare.toLocaleString()}</td>
-            <td className="text-muted-foreground">₦{fee.bankShare.toLocaleString()}</td>
-            <td className="text-sm text-muted-foreground">{fee.period}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-
-  const renderTable = () => {
-    switch (selectedReport) {
-      case "transactions": return renderTransactionTable();
-      case "settlements": return renderSettlementTable();
-      case "issuing_fees": return renderIssuingFeeTable();
-      case "all_fees": return renderComprehensiveFeeTable();
-      default: return renderTransactionTable();
-    }
-  };
-
-  const getRowCount = () => {
-    switch (selectedReport) {
-      case "transactions": return { showing: transactionData.length, total: "12,847" };
-      case "settlements": return { showing: settlementData.length, total: "31" };
-      case "issuing_fees": return { showing: issuingFeeData.length, total: "24" };
-      case "all_fees": return { showing: comprehensiveFeeData.length, total: "8" };
-      default: return { showing: 5, total: "100" };
-    }
-  };
-
-  const rowCount = getRowCount();
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -309,35 +88,25 @@ export default function Reports() {
       <div className="page-header">
         <h1 className="page-title">Reports</h1>
         <p className="page-description">
-          Generate and download reports for transactions, settlements, and fees
+          View transaction and settlement reports
         </p>
       </div>
 
-      {/* Report Type Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {reportTypes.map((report) => (
-          <button
-            key={report.id}
-            onClick={() => setSelectedReport(report.id)}
-            className={cn(
-              "p-4 rounded-xl border-2 text-left transition-all",
-              selectedReport === report.id
-                ? "border-accent bg-accent/5"
-                : "border-border hover:border-accent/50"
-            )}
-          >
-            <div className={cn("p-2 rounded-lg w-fit", report.bgColor)}>
-              <report.icon className={cn("w-5 h-5", report.color)} />
-            </div>
-            <p className="font-medium text-foreground mt-3">{report.name}</p>
-            <p className="text-xs text-muted-foreground mt-1">{report.description}</p>
-          </button>
-        ))}
-      </div>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="transactions" className="flex items-center gap-2">
+            <ArrowUpRight className="w-4 h-4" />
+            Transactions
+          </TabsTrigger>
+          <TabsTrigger value="settlements" className="flex items-center gap-2">
+            <ArrowDownRight className="w-4 h-4" />
+            Settlement
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Filters and Summary */}
-      <div className="card-elevated p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        {/* Filters and Export - Common for both tabs */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-6">
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
               <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -354,6 +123,25 @@ export default function Reports() {
                 <option value="custom">Custom Range</option>
               </select>
             </div>
+            
+            {activeTab === "settlements" && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Fee Type:</span>
+                <Select value={feeTypeFilter} onValueChange={setFeeTypeFilter}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Select fee type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {feeTypeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <button className="btn-secondary">
               <Filter className="w-4 h-4" />
               More Filters
@@ -375,54 +163,107 @@ export default function Reports() {
           </div>
         </div>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6 p-4 bg-muted/30 rounded-xl">
-          <div>
-            <p className="text-sm text-muted-foreground">{currentStats.stat1.label}</p>
-            <p className={cn("text-2xl font-bold", currentStats.stat1.className || "text-foreground")}>
-              {currentStats.stat1.value}
-            </p>
+        {/* Transactions Tab */}
+        <TabsContent value="transactions" className="mt-6">
+          <div className="card-elevated">
+            <div className="p-6 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">Transaction Overview</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                All transactions with details
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>S/N</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Terminal ID</TableHead>
+                    <TableHead>Merchant ID</TableHead>
+                    <TableHead>Response</TableHead>
+                    <TableHead>Response Code</TableHead>
+                    <TableHead>RRN</TableHead>
+                    <TableHead>PAN</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transactionData.map((tx) => (
+                    <TableRow key={tx.id}>
+                      <TableCell className="font-medium">{tx.id}</TableCell>
+                      <TableCell className="text-muted-foreground">{tx.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{tx.terminalId}</TableCell>
+                      <TableCell className="font-mono text-sm">{tx.merchantId}</TableCell>
+                      <TableCell>
+                        <span className={cn(
+                          "status-badge",
+                          tx.response === "Approved" ? "status-active" : "status-blocked"
+                        )}>
+                          {tx.response}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">{tx.responseCode}</TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">{tx.rrn}</TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">{tx.pan}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="p-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground">
+              <span>Showing {transactionData.length} of {transactionData.length} transactions</span>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">{currentStats.stat2.label}</p>
-            <p className={cn("text-2xl font-bold", currentStats.stat2.className || "text-foreground")}>
-              {currentStats.stat2.value}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">{currentStats.stat3.label}</p>
-            <p className={cn("text-2xl font-bold", currentStats.stat3.className || "text-foreground")}>
-              {currentStats.stat3.value}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">{currentStats.stat4.label}</p>
-            <p className={cn("text-2xl font-bold", currentStats.stat4.className || "text-foreground")}>
-              {currentStats.stat4.value}
-            </p>
-          </div>
-        </div>
+        </TabsContent>
 
-        {/* Data Table */}
-        <div className="overflow-x-auto">
-          {renderTable()}
-        </div>
-
-        {/* Pagination */}
-        <div className="flex items-center justify-between pt-4 border-t border-border mt-4">
-          <p className="text-sm text-muted-foreground">
-            Showing 1-{rowCount.showing} of {rowCount.total} records
-          </p>
-          <div className="flex gap-2">
-            <button className="btn-ghost text-sm" disabled>
-              Previous
-            </button>
-            <button className="btn-ghost text-sm">
-              Next
-            </button>
+        {/* Settlement Tab */}
+        <TabsContent value="settlements" className="mt-6">
+          <div className="card-elevated">
+            <div className="p-6 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">Settlement Overview</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Settlement records with fee details
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>S/N</TableHead>
+                    <TableHead>Settlement Date</TableHead>
+                    <TableHead>Period</TableHead>
+                    <TableHead>Account Number</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Fee</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Fee Type</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {getFilteredSettlementData().map((stl) => (
+                    <TableRow key={stl.id}>
+                      <TableCell className="font-medium">{stl.id}</TableCell>
+                      <TableCell className="text-muted-foreground">{stl.settlementDate}</TableCell>
+                      <TableCell className="text-muted-foreground">{stl.period}</TableCell>
+                      <TableCell className="font-mono text-sm">{stl.accountNumber}</TableCell>
+                      <TableCell className="font-medium text-foreground">₦{stl.amount.toLocaleString()}</TableCell>
+                      <TableCell className="text-muted-foreground">₦{stl.fee.toLocaleString()}</TableCell>
+                      <TableCell className="text-foreground">{stl.quantity}</TableCell>
+                      <TableCell>
+                        <span className="px-2 py-1 bg-muted rounded text-xs font-medium">
+                          {stl.feeType}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="p-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground">
+              <span>Showing {getFilteredSettlementData().length} of {settlementData.length} settlements</span>
+            </div>
           </div>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

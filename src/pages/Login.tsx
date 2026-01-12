@@ -43,7 +43,7 @@ const testUsers = [
       privileges: [
         "dashboard.view", "dashboard.export",
         "reports.view", "reports.export", "reports.settlements", "reports.transactions",
-        "fees.view", "fees.request_change"
+        "setup.view", "setup.edit"
       ],
     },
   },
