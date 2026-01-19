@@ -26,22 +26,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useRolesStore } from "@/stores/rolesStore";
-
-type PermissionLevel = "none" | "view" | "create" | "edit" | "delete" | "full";
 
 interface ModulePermission {
   module: string;
   label: string;
-  permission: PermissionLevel;
+  permissions: {
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
 }
 
 const modulesList = [
@@ -55,51 +52,52 @@ const modulesList = [
   { id: "admin.roles", label: "Admin - Roles" },
 ];
 
-const permissionLevels: { value: PermissionLevel; label: string }[] = [
-  { value: "none", label: "None" },
-  { value: "view", label: "View" },
-  { value: "create", label: "Create" },
-  { value: "edit", label: "Edit" },
-  { value: "delete", label: "Delete" },
-  { value: "full", label: "Full Access" },
-];
+const permissionTypes = ["view", "create", "edit", "delete"] as const;
 
 const getPrivilegesFromPermissions = (permissions: ModulePermission[]): string[] => {
   const privileges: string[] = [];
   
-  permissions.forEach(({ module, permission }) => {
-    if (permission === "none") return;
-    
-    if (permission === "full") {
-      privileges.push(`${module}.view`, `${module}.create`, `${module}.edit`, `${module}.delete`);
-    } else {
-      privileges.push(`${module}.${permission}`);
-      // View is always included if any permission is granted
-      if (permission !== "view") {
-        privileges.push(`${module}.view`);
-      }
-    }
+  permissions.forEach(({ module, permissions: perms }) => {
+    if (perms.view) privileges.push(`${module}.view`);
+    if (perms.create) privileges.push(`${module}.create`);
+    if (perms.edit) privileges.push(`${module}.edit`);
+    if (perms.delete) privileges.push(`${module}.delete`);
   });
   
-  return [...new Set(privileges)]; // Remove duplicates
+  return privileges;
 };
 
 export default function AdminRoles() {
   const { roles, addRole, deleteRole } = useRolesStore();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<{ id: string; name: string; description: string } | null>(null);
   const [newRole, setNewRole] = useState({
     name: "",
     description: "",
   });
   const [modulePermissions, setModulePermissions] = useState<ModulePermission[]>(
-    modulesList.map((m) => ({ module: m.id, label: m.label, permission: "none" as PermissionLevel }))
+    modulesList.map((m) => ({ 
+      module: m.id, 
+      label: m.label, 
+      permissions: { view: false, create: false, edit: false, delete: false } 
+    }))
   );
   const { toast } = useToast();
 
-  const handlePermissionChange = (moduleId: string, permission: PermissionLevel) => {
+  const handlePermissionChange = (moduleId: string, permType: typeof permissionTypes[number], checked: boolean) => {
     setModulePermissions((prev) =>
-      prev.map((mp) => (mp.module === moduleId ? { ...mp, permission } : mp))
+      prev.map((mp) => 
+        mp.module === moduleId 
+          ? { ...mp, permissions: { ...mp.permissions, [permType]: checked } } 
+          : mp
+      )
     );
+  };
+
+  const handleEditRole = (role: { id: string; name: string; description: string }) => {
+    setEditingRole(role);
+    setEditDialogOpen(true);
   };
 
   const handleCreateRole = () => {
@@ -130,7 +128,11 @@ export default function AdminRoles() {
     });
 
     setNewRole({ name: "", description: "" });
-    setModulePermissions(modulesList.map((m) => ({ module: m.id, label: m.label, permission: "none" as PermissionLevel })));
+    setModulePermissions(modulesList.map((m) => ({ 
+      module: m.id, 
+      label: m.label, 
+      permissions: { view: false, create: false, edit: false, delete: false } 
+    })));
     setDialogOpen(false);
     toast({
       title: "Role Created",
@@ -197,36 +199,35 @@ export default function AdminRoles() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="text-base font-medium">Module Permissions</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Assign permission level for each module
-                  </p>
                 </div>
-                <div className="border rounded-lg divide-y">
-                  {modulePermissions.map((mp) => (
-                    <div key={mp.module} className="flex items-center justify-between p-3">
-                      <div className="flex items-center gap-3">
-                        <Shield className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">{mp.label}</span>
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="grid grid-cols-5 gap-2 p-3 bg-muted/50 text-xs font-medium text-muted-foreground">
+                    <div>Module</div>
+                    <div className="text-center">View</div>
+                    <div className="text-center">Create</div>
+                    <div className="text-center">Edit</div>
+                    <div className="text-center">Delete</div>
+                  </div>
+                  <div className="divide-y">
+                    {modulePermissions.map((mp) => (
+                      <div key={mp.module} className="grid grid-cols-5 gap-2 p-3 items-center">
+                        <div className="flex items-center gap-2">
+                          <Shield className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">{mp.label}</span>
+                        </div>
+                        {permissionTypes.map((permType) => (
+                          <div key={permType} className="flex justify-center">
+                            <Checkbox
+                              checked={mp.permissions[permType]}
+                              onCheckedChange={(checked) =>
+                                handlePermissionChange(mp.module, permType, checked === true)
+                              }
+                            />
+                          </div>
+                        ))}
                       </div>
-                      <Select
-                        value={mp.permission}
-                        onValueChange={(value: PermissionLevel) =>
-                          handlePermissionChange(mp.module, value)
-                        }
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {permissionLevels.map((level) => (
-                            <SelectItem key={level.value} value={level.value}>
-                              {level.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -323,7 +324,7 @@ export default function AdminRoles() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEditRole(role)}>
                         <Edit className="w-4 h-4 mr-2" />
                         Edit Role
                       </DropdownMenuItem>
@@ -342,6 +343,58 @@ export default function AdminRoles() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Edit Role Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Role</DialogTitle>
+            <DialogDescription>
+              Update role details
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="editRoleName">Role Name</Label>
+              <Input
+                id="editRoleName"
+                value={editingRole?.name || ""}
+                onChange={(e) => setEditingRole(prev => prev ? { ...prev, name: e.target.value } : null)}
+                placeholder="e.g., Operations Manager"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editRoleDescription">Description</Label>
+              <Textarea
+                id="editRoleDescription"
+                value={editingRole?.description || ""}
+                onChange={(e) => setEditingRole(prev => prev ? { ...prev, description: e.target.value } : null)}
+                placeholder="Describe the role's responsibilities..."
+                rows={2}
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                className="btn-accent" 
+                onClick={() => {
+                  if (editingRole) {
+                    toast({
+                      title: "Role Updated",
+                      description: `${editingRole.name} has been updated successfully.`,
+                    });
+                    setEditDialogOpen(false);
+                  }
+                }}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
