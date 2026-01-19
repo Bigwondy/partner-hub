@@ -3,7 +3,7 @@ import { Plus, MoreHorizontal, Shield, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
 import {
   Dialog,
   DialogContent,
@@ -71,11 +71,17 @@ export default function AdminRoles() {
   const { roles, addRole, deleteRole } = useRolesStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingRole, setEditingRole] = useState<{ id: string; name: string; description: string } | null>(null);
-  const [newRole, setNewRole] = useState({
+  const [editingRole, setEditingRole] = useState<{ id: string; name: string } | null>(null);
+const [newRole, setNewRole] = useState({
     name: "",
-    description: "",
   });
+  const [editModulePermissions, setEditModulePermissions] = useState<ModulePermission[]>(
+    modulesList.map((m) => ({ 
+      module: m.id, 
+      label: m.label, 
+      permissions: { view: false, create: false, edit: false, delete: false } 
+    }))
+  );
   const [modulePermissions, setModulePermissions] = useState<ModulePermission[]>(
     modulesList.map((m) => ({ 
       module: m.id, 
@@ -95,9 +101,30 @@ export default function AdminRoles() {
     );
   };
 
-  const handleEditRole = (role: { id: string; name: string; description: string }) => {
-    setEditingRole(role);
+  const handleEditRole = (role: typeof roles[0]) => {
+    setEditingRole({ id: role.id, name: role.name });
+    // Initialize edit permissions from role's privileges
+    const newEditPerms = modulesList.map((m) => {
+      const perms = {
+        view: role.privileges.includes(`${m.id}.view`),
+        create: role.privileges.includes(`${m.id}.create`),
+        edit: role.privileges.includes(`${m.id}.edit`),
+        delete: role.privileges.includes(`${m.id}.delete`),
+      };
+      return { module: m.id, label: m.label, permissions: perms };
+    });
+    setEditModulePermissions(newEditPerms);
     setEditDialogOpen(true);
+  };
+
+  const handleEditPermissionChange = (moduleId: string, permType: typeof permissionTypes[number], checked: boolean) => {
+    setEditModulePermissions((prev) =>
+      prev.map((mp) => 
+        mp.module === moduleId 
+          ? { ...mp, permissions: { ...mp.permissions, [permType]: checked } } 
+          : mp
+      )
+    );
   };
 
   const handleCreateRole = () => {
@@ -123,11 +150,11 @@ export default function AdminRoles() {
 
     addRole({
       name: newRole.name,
-      description: newRole.description,
+      description: "",
       privileges,
     });
 
-    setNewRole({ name: "", description: "" });
+    setNewRole({ name: "" });
     setModulePermissions(modulesList.map((m) => ({ 
       module: m.id, 
       label: m.label, 
@@ -183,16 +210,6 @@ export default function AdminRoles() {
                   value={newRole.name}
                   onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
                   placeholder="e.g., Operations Manager"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="roleDescription">Description</Label>
-                <Textarea
-                  id="roleDescription"
-                  value={newRole.description}
-                  onChange={(e) => setNewRole({ ...newRole, description: e.target.value })}
-                  placeholder="Describe the role's responsibilities..."
-                  rows={2}
                 />
               </div>
 
@@ -276,7 +293,6 @@ export default function AdminRoles() {
           <TableHeader>
             <TableRow>
               <TableHead>Role Name</TableHead>
-              <TableHead>Description</TableHead>
               <TableHead>Privileges</TableHead>
               <TableHead>Users</TableHead>
               <TableHead>Created</TableHead>
@@ -293,9 +309,6 @@ export default function AdminRoles() {
                     </div>
                     <span className="font-medium">{role.name}</span>
                   </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground max-w-xs truncate">
-                  {role.description}
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
@@ -346,34 +359,45 @@ export default function AdminRoles() {
 
       {/* Edit Role Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Role</DialogTitle>
+            <DialogTitle>Edit Role Privileges</DialogTitle>
             <DialogDescription>
-              Update role details
+              Update privileges for {editingRole?.name}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="editRoleName">Role Name</Label>
-              <Input
-                id="editRoleName"
-                value={editingRole?.name || ""}
-                onChange={(e) => setEditingRole(prev => prev ? { ...prev, name: e.target.value } : null)}
-                placeholder="e.g., Operations Manager"
-              />
+          <div className="space-y-6 py-4">
+            <div className="border rounded-lg overflow-hidden">
+              <div className="grid grid-cols-5 gap-2 p-3 bg-muted/50 text-xs font-medium text-muted-foreground">
+                <div>Module</div>
+                <div className="text-center">View</div>
+                <div className="text-center">Create</div>
+                <div className="text-center">Edit</div>
+                <div className="text-center">Delete</div>
+              </div>
+              <div className="divide-y">
+                {editModulePermissions.map((mp) => (
+                  <div key={mp.module} className="grid grid-cols-5 gap-2 p-3 items-center">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">{mp.label}</span>
+                    </div>
+                    {permissionTypes.map((permType) => (
+                      <div key={permType} className="flex justify-center">
+                        <Checkbox
+                          checked={mp.permissions[permType]}
+                          onCheckedChange={(checked) =>
+                            handleEditPermissionChange(mp.module, permType, checked === true)
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="editRoleDescription">Description</Label>
-              <Textarea
-                id="editRoleDescription"
-                value={editingRole?.description || ""}
-                onChange={(e) => setEditingRole(prev => prev ? { ...prev, description: e.target.value } : null)}
-                placeholder="Describe the role's responsibilities..."
-                rows={2}
-              />
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
+
+            <div className="flex justify-end gap-3 pt-4 border-t">
               <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                 Cancel
               </Button>
@@ -381,9 +405,13 @@ export default function AdminRoles() {
                 className="btn-accent" 
                 onClick={() => {
                   if (editingRole) {
+                    const privileges = getPrivilegesFromPermissions(editModulePermissions);
+                    // Update the role in the store
+                    const { updateRole } = useRolesStore.getState();
+                    updateRole(editingRole.id, { privileges });
                     toast({
                       title: "Role Updated",
-                      description: `${editingRole.name} has been updated successfully.`,
+                      description: `${editingRole.name} privileges have been updated successfully.`,
                     });
                     setEditDialogOpen(false);
                   }
