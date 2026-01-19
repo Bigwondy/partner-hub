@@ -40,13 +40,10 @@ interface AdminUser {
   id: string;
   firstName: string;
   lastName: string;
-  username: string;
   email: string;
   phoneNumber: string;
   role: string;
-  userType: "Admin" | "Regular";
   status: "Active" | "Inactive" | "Pending";
-  lastLogin: string;
   createdAt: string;
 }
 
@@ -55,65 +52,50 @@ const mockUsers: AdminUser[] = [
     id: "1",
     firstName: "Wonderful",
     lastName: "Onwuchekwa",
-    username: "wonderful.o",
     email: "wonderful@acmecorp.com",
     phoneNumber: "+234 801 234 5678",
     role: "Partner Admin",
-    userType: "Admin",
     status: "Active",
-    lastLogin: "2024-01-05 14:30",
     createdAt: "2024-01-01",
   },
   {
     id: "2",
     firstName: "Adebayo",
     lastName: "Johnson",
-    username: "adebayo.j",
     email: "adebayo@acmecorp.com",
     phoneNumber: "+234 802 345 6789",
     role: "Support Agent",
-    userType: "Regular",
     status: "Active",
-    lastLogin: "2024-01-05 09:15",
     createdAt: "2024-01-15",
   },
   {
     id: "3",
     firstName: "Chioma",
     lastName: "Eze",
-    username: "chioma.e",
     email: "chioma@acmecorp.com",
     phoneNumber: "+234 803 456 7890",
     role: "Finance Officer",
-    userType: "Regular",
     status: "Active",
-    lastLogin: "2024-01-04 16:45",
     createdAt: "2024-02-01",
   },
   {
     id: "4",
     firstName: "Emeka",
     lastName: "Okonkwo",
-    username: "emeka.o",
     email: "emeka@acmecorp.com",
     phoneNumber: "+234 804 567 8901",
     role: "Support Agent",
-    userType: "Regular",
     status: "Pending",
-    lastLogin: "-",
     createdAt: "2024-03-01",
   },
   {
     id: "5",
     firstName: "Fatima",
     lastName: "Abdullahi",
-    username: "fatima.a",
     email: "fatima@acmecorp.com",
     phoneNumber: "+234 805 678 9012",
     role: "Read-Only User",
-    userType: "Regular",
     status: "Inactive",
-    lastLogin: "2023-12-20 11:00",
     createdAt: "2023-11-15",
   },
 ];
@@ -124,21 +106,17 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   Pending: { label: "Pending", className: "status-badge status-pending" },
 };
 
-const userTypeConfig: Record<string, { label: string; className: string }> = {
-  Admin: { label: "Admin", className: "bg-primary/10 text-primary" },
-  Regular: { label: "Regular", className: "bg-muted text-muted-foreground" },
-};
-
 export default function AdminUsers() {
   const { getRoleNames } = useRolesStore();
   const roleNames = getRoleNames();
   const [users, setUsers] = useState<AdminUser[]>(mockUsers);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [newUser, setNewUser] = useState({
     firstName: "",
     lastName: "",
-    username: "",
     email: "",
     password: "",
     phoneNumber: "",
@@ -149,12 +127,11 @@ export default function AdminUsers() {
   const filteredUsers = users.filter(
     (user) =>
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.username.toLowerCase().includes(searchQuery.toLowerCase())
+      user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCreateUser = () => {
-    if (!newUser.firstName || !newUser.lastName || !newUser.username || !newUser.email || !newUser.password || !newUser.phoneNumber || !newUser.role) {
+    if (!newUser.firstName || !newUser.lastName || !newUser.email || !newUser.password || !newUser.phoneNumber || !newUser.role) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -163,27 +140,47 @@ export default function AdminUsers() {
       return;
     }
 
-    // Create user directly
     const newUserData: AdminUser = {
       id: String(users.length + 1),
       firstName: newUser.firstName,
       lastName: newUser.lastName,
-      username: newUser.username,
       email: newUser.email,
       phoneNumber: newUser.phoneNumber,
       role: newUser.role,
-      userType: "Regular",
       status: "Active",
-      lastLogin: "-",
       createdAt: new Date().toISOString().split("T")[0],
     };
 
     setUsers([...users, newUserData]);
-    setNewUser({ firstName: "", lastName: "", username: "", email: "", password: "", phoneNumber: "", role: "" });
+    setNewUser({ firstName: "", lastName: "", email: "", password: "", phoneNumber: "", role: "" });
     setDialogOpen(false);
     toast({
       title: "User Created",
       description: `${newUser.firstName} ${newUser.lastName} has been created successfully.`,
+    });
+  };
+
+  const handleEditUser = (user: AdminUser) => {
+    setEditingUser(user);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingUser) return;
+    
+    setUsers(users.map(u => u.id === editingUser.id ? editingUser : u));
+    setEditDialogOpen(false);
+    toast({
+      title: "User Updated",
+      description: `${editingUser.firstName} ${editingUser.lastName} has been updated successfully.`,
+    });
+  };
+
+  const handleDeactivateUser = (user: AdminUser) => {
+    setUsers(users.map(u => u.id === user.id ? { ...u, status: "Inactive" as const } : u));
+    toast({
+      title: "User Deactivated",
+      description: `${user.firstName} ${user.lastName} has been deactivated.`,
     });
   };
 
@@ -237,17 +234,6 @@ export default function AdminUsers() {
                     placeholder="Enter last name"
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={newUser.username}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, username: e.target.value })
-                  }
-                  placeholder="Enter username"
-                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="userEmail">Email Address</Label>
@@ -352,55 +338,35 @@ export default function AdminUsers() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead>First Name</TableHead>
+              <TableHead>Last Name</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Phone Number</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Login</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[100px]">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredUsers.map((user) => (
               <TableRow key={user.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-                      <span className="text-sm font-semibold text-accent">
-                        {user.firstName[0]}{user.lastName[0]}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium">{user.firstName} {user.lastName}</p>
-                      <p className="text-sm text-muted-foreground">
-                        @{user.username}
-                      </p>
-                    </div>
-                  </div>
+                <TableCell className="text-muted-foreground">
+                  {user.createdAt}
+                </TableCell>
+                <TableCell className="font-medium">
+                  {user.firstName}
+                </TableCell>
+                <TableCell className="font-medium">
+                  {user.lastName}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {user.email}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {user.role}
-                </TableCell>
-                <TableCell>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      userTypeConfig[user.userType].className
-                    }`}
-                  >
-                    {user.userType}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className={statusConfig[user.status].className}>
-                    {statusConfig[user.status].label}
-                  </span>
+                  {user.phoneNumber}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {user.lastLogin}
+                  {user.role}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
@@ -410,12 +376,15 @@ export default function AdminUsers() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEditUser(user)}>
                         <Edit className="w-4 h-4 mr-2" />
                         Edit User
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => handleDeactivateUser(user)}
+                      >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Deactivate User
                       </DropdownMenuItem>
@@ -427,6 +396,87 @@ export default function AdminUsers() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update user details
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="editFirstName">First Name</Label>
+                <Input
+                  id="editFirstName"
+                  value={editingUser?.firstName || ""}
+                  onChange={(e) =>
+                    setEditingUser(prev => prev ? { ...prev, firstName: e.target.value } : null)
+                  }
+                  placeholder="Enter first name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="editLastName">Last Name</Label>
+                <Input
+                  id="editLastName"
+                  value={editingUser?.lastName || ""}
+                  onChange={(e) =>
+                    setEditingUser(prev => prev ? { ...prev, lastName: e.target.value } : null)
+                  }
+                  placeholder="Enter last name"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editPhoneNumber">Phone Number</Label>
+              <Input
+                id="editPhoneNumber"
+                type="tel"
+                value={editingUser?.phoneNumber || ""}
+                onChange={(e) =>
+                  setEditingUser(prev => prev ? { ...prev, phoneNumber: e.target.value } : null)
+                }
+                placeholder="+234 800 000 0000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editUserRole">Role</Label>
+              <Select
+                value={editingUser?.role || ""}
+                onValueChange={(value) =>
+                  setEditingUser(prev => prev ? { ...prev, role: value } : null)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roleNames.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {role}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button className="btn-accent" onClick={handleSaveEdit}>
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
