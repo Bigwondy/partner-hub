@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, MoreHorizontal, User, Edit, Trash2, Mail, Key } from "lucide-react";
+import { Plus, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +35,6 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useRolesStore } from "@/stores/rolesStore";
-import { useApprovalsStore } from "@/stores/approvalsStore";
 
 interface AdminUser {
   id: string;
@@ -132,7 +131,6 @@ const userTypeConfig: Record<string, { label: string; className: string }> = {
 
 export default function AdminUsers() {
   const { getRoleNames } = useRolesStore();
-  const { addApproval } = useApprovalsStore();
   const roleNames = getRoleNames();
   const [users, setUsers] = useState<AdminUser[]>(mockUsers);
   const [searchQuery, setSearchQuery] = useState("");
@@ -145,7 +143,6 @@ export default function AdminUsers() {
     password: "",
     phoneNumber: "",
     role: "",
-    userType: "Regular" as "Admin" | "Regular",
   });
   const { toast } = useToast();
 
@@ -166,31 +163,27 @@ export default function AdminUsers() {
       return;
     }
 
-    // Submit to approvals instead of creating directly
-    const approvalId = addApproval({
-      type: "user_create",
-      requestedBy: "Current User",
-      requestedByEmail: "admin@pavilion.com",
-      subject: `New User Request - ${newUser.firstName} ${newUser.lastName}`,
-      description: `Request to create a new ${newUser.userType} user with ${newUser.role} role`,
-      status: "pending",
-      priority: newUser.userType === "Admin" ? "high" : "medium",
-      metadata: {
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        username: newUser.username,
-        email: newUser.email,
-        phoneNumber: newUser.phoneNumber,
-        role: newUser.role,
-        userType: newUser.userType,
-      },
-    });
+    // Create user directly
+    const newUserData: AdminUser = {
+      id: String(users.length + 1),
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      username: newUser.username,
+      email: newUser.email,
+      phoneNumber: newUser.phoneNumber,
+      role: newUser.role,
+      userType: "Regular",
+      status: "Active",
+      lastLogin: "-",
+      createdAt: new Date().toISOString().split("T")[0],
+    };
 
-    setNewUser({ firstName: "", lastName: "", username: "", email: "", password: "", phoneNumber: "", role: "", userType: "Regular" });
+    setUsers([...users, newUserData]);
+    setNewUser({ firstName: "", lastName: "", username: "", email: "", password: "", phoneNumber: "", role: "" });
     setDialogOpen(false);
     toast({
-      title: "Request Submitted",
-      description: `User creation request (${approvalId}) has been submitted for approval.`,
+      title: "User Created",
+      description: `${newUser.firstName} ${newUser.lastName} has been created successfully.`,
     });
   };
 
@@ -292,48 +285,26 @@ export default function AdminUsers() {
                   placeholder="+234 800 000 0000"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="userRole">Role</Label>
-                  <Select
-                    value={newUser.role}
-                    onValueChange={(value) =>
-                      setNewUser({ ...newUser, role: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roleNames.map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {role}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="userType">User Type</Label>
-                  <Select
-                    value={newUser.userType}
-                    onValueChange={(value: "Admin" | "Regular") =>
-                      setNewUser({ ...newUser, userType: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Admin">Admin</SelectItem>
-                      <SelectItem value="Regular">Regular</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="userRole">Role</Label>
+                <Select
+                  value={newUser.role}
+                  onValueChange={(value) =>
+                    setNewUser({ ...newUser, role: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roleNames.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {role}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Admin users can edit system configurations
-              </p>
               <div className="flex justify-end gap-3 pt-4">
                 <Button
                   variant="outline"
@@ -442,14 +413,6 @@ export default function AdminUsers() {
                       <DropdownMenuItem>
                         <Edit className="w-4 h-4 mr-2" />
                         Edit User
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Mail className="w-4 h-4 mr-2" />
-                        Resend Invite
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Key className="w-4 h-4 mr-2" />
-                        Reset Password
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-destructive">

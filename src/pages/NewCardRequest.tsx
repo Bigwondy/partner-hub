@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { ArrowLeft, Check, CreditCard, Upload, Download, FileSpreadsheet, Clock } from "lucide-react";
+import { ArrowLeft, Check, CreditCard, Upload, Download, FileSpreadsheet } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useApprovalsStore } from "@/stores/approvalsStore";
 
 const cardProfiles = [
   { id: "visa_classic", name: "Visa Classic", fee: 2500 },
@@ -16,7 +15,6 @@ type CardType = "instant" | "embossed" | null;
 
 export default function NewCardRequest() {
   const navigate = useNavigate();
-  const { addApproval } = useApprovalsStore();
   const [selectedType, setSelectedType] = useState<CardType>(null);
   const [cardProfile, setCardProfile] = useState("");
   const [quantity, setQuantity] = useState("1");
@@ -64,33 +62,12 @@ export default function NewCardRequest() {
       return;
     }
 
-    // Submit to approvals workflow
     const cardTypeName = selectedType === "instant" ? "Instant" : "Embossed";
-    const qty = selectedType === "instant" ? quantity : "File uploaded";
-    
-    addApproval({
-      type: "card_request",
-      requestedBy: localStorage.getItem("userName") || "Current User",
-      requestedByEmail: "user@partner.com",
-      subject: `${cardTypeName} Card Request - ${selectedProfileData?.name}`,
-      description: selectedType === "instant" 
-        ? `Request for ${quantity} ${selectedProfileData?.name} instant cards. Total fee: ₦${totalFee.toLocaleString()}`
-        : `Request for ${selectedProfileData?.name} embossed cards. File: ${uploadedFile?.name}`,
-      status: "pending",
-      priority: parseInt(quantity || "0") > 100 ? "high" : "medium",
-      metadata: {
-        cardType: cardTypeName,
-        profile: selectedProfileData?.name || "",
-        quantity: selectedType === "instant" ? quantity : "See uploaded file",
-        totalFee: `₦${totalFee.toLocaleString()}`,
-        fileName: uploadedFile?.name || "",
-      },
-    });
 
-    toast.success("Card request submitted for approval!", {
-      description: "Your request is pending review by an authorized approver.",
+    toast.success("Card request submitted successfully!", {
+      description: `Your ${cardTypeName} card request has been submitted.`,
     });
-    navigate("/approvals");
+    navigate("/card-requests");
   };
 
   const handleBack = () => {
@@ -234,14 +211,6 @@ export default function NewCardRequest() {
               </div>
             )}
 
-            {/* Approval Notice */}
-            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
-              <div className="flex items-center gap-2 text-warning text-sm">
-                <Clock className="w-4 h-4" />
-                <span>This request requires approval before processing</span>
-              </div>
-            </div>
-
             {/* Submit Button */}
             <div className="pt-4 border-t border-border">
               <button
@@ -250,7 +219,7 @@ export default function NewCardRequest() {
                 disabled={!cardProfile || !quantity}
               >
                 <Check className="w-4 h-4" />
-                Submit for Approval
+                Submit Request
               </button>
             </div>
           </div>
@@ -368,14 +337,6 @@ export default function NewCardRequest() {
               </div>
             )}
 
-            {/* Approval Notice */}
-            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
-              <div className="flex items-center gap-2 text-warning text-sm">
-                <Clock className="w-4 h-4" />
-                <span>This request requires approval before processing</span>
-              </div>
-            </div>
-
             {/* Submit Button */}
             <div className="pt-4 border-t border-border">
               <button
@@ -384,7 +345,7 @@ export default function NewCardRequest() {
                 disabled={!cardProfile || !uploadedFile}
               >
                 <Check className="w-4 h-4" />
-                Submit for Approval
+                Submit Request
               </button>
             </div>
           </div>
