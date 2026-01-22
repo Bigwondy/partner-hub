@@ -48,56 +48,6 @@ interface AdminUser {
 }
 
 const mockUsers: AdminUser[] = [
-  {
-    id: "1",
-    firstName: "Wonderful",
-    lastName: "Onwuchekwa",
-    email: "wonderful@acmecorp.com",
-    phoneNumber: "+234 801 234 5678",
-    role: "Partner Admin",
-    status: "Active",
-    createdAt: "2024-01-01",
-  },
-  {
-    id: "2",
-    firstName: "Adebayo",
-    lastName: "Johnson",
-    email: "adebayo@acmecorp.com",
-    phoneNumber: "+234 802 345 6789",
-    role: "Support Agent",
-    status: "Active",
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "3",
-    firstName: "Chioma",
-    lastName: "Eze",
-    email: "chioma@acmecorp.com",
-    phoneNumber: "+234 803 456 7890",
-    role: "Finance Officer",
-    status: "Active",
-    createdAt: "2024-02-01",
-  },
-  {
-    id: "4",
-    firstName: "Emeka",
-    lastName: "Okonkwo",
-    email: "emeka@acmecorp.com",
-    phoneNumber: "+234 804 567 8901",
-    role: "Support Agent",
-    status: "Pending",
-    createdAt: "2024-03-01",
-  },
-  {
-    id: "5",
-    firstName: "Fatima",
-    lastName: "Abdullahi",
-    email: "fatima@acmecorp.com",
-    phoneNumber: "+234 805 678 9012",
-    role: "Read-Only User",
-    status: "Inactive",
-    createdAt: "2023-11-15",
-  },
 ];
 
 const statusConfig: Record<string, { label: string; className: string }> = {
