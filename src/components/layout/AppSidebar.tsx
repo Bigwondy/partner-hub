@@ -39,8 +39,8 @@ const dashboardNav: NavItem[] = [
 ];
 
 const adminNavigation: NavItem[] = [
-  { name: "Users", href: "/admin/users", icon: Users, requiredPrivileges: ["admin.users.view"] },
   { name: "Roles", href: "/admin/roles", icon: Shield, requiredPrivileges: ["admin.roles.view"] },
+  { name: "Users", href: "/admin/users", icon: Users, requiredPrivileges: ["admin.users.view"] },
 ];
 
 const approvalsNav: NavItem[] = [
