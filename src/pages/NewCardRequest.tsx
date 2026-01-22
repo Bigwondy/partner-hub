@@ -259,26 +259,6 @@ export default function NewCardRequest() {
               </select>
             </div>
 
-            {/* Download Template */}
-            <div className="p-4 bg-muted/50 rounded-xl border border-border">
-              <div className="flex items-start gap-3">
-                <FileSpreadsheet className="w-5 h-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1">
-                  <h4 className="text-sm font-medium text-foreground mb-1">Card File Template</h4>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Download the template, fill in customer details, then upload the completed file.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleDownloadTemplate}
-                    className="btn-secondary text-sm"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download Template
-                  </button>
-                </div>
-              </div>
-            </div>
 
             {/* File Upload */}
             <div>

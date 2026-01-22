@@ -14,6 +14,7 @@ import Reports from "./pages/Reports";
 import Setup from "./pages/Setup";
 import AdminUsers from "./pages/AdminUsers";
 import AdminRoles from "./pages/AdminRoles";
+import Approvals from "./pages/Approvals";
 import NotificationsPage from "./pages/NotificationsPage";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
@@ -55,6 +56,7 @@ const App = () => (
                     <Route path="/setup" element={<Setup />} />
                     <Route path="/admin/users" element={<AdminUsers />} />
                     <Route path="/admin/roles" element={<AdminRoles />} />
+                    <Route path="/approvals" element={<Approvals />} />
                     <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="*" element={<NotFound />} />

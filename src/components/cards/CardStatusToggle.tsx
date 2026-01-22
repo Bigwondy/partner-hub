@@ -17,7 +17,7 @@ interface CardStatusToggleProps {
   onOpenChange: (open: boolean) => void;
   cardNumber: string;
   cardHolder: string;
-  currentStatus: "Active" | "Blocked" | "Pending" | "Paused";
+  currentStatus: "Active" | "Blocked" | "Expired";
   onStatusChange: (newStatus: "Active" | "Blocked") => void;
 }
 

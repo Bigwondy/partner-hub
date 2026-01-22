@@ -55,11 +55,11 @@ const cards = [
     customerId: "CUS-0045319",
     type: "Visa Debit",
     cardCategory: "virtual",
-    status: "paused",
-    expiry: "03/27",
+    status: "expired",
+    expiry: "03/24",
     dailyLimit: 500000,
     monthlyLimit: 5000000,
-    issuedAt: "2024-03-20",
+    issuedAt: "2021-03-20",
   },
   {
     id: "CRD-004",
@@ -104,9 +104,8 @@ const cards = [
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   active: { label: "Active", className: "status-active" },
-  paused: { label: "Paused", className: "status-paused" },
-  blocked: { label: "Blocked", className: "status-blocked" },
   expired: { label: "Expired", className: "bg-muted text-muted-foreground" },
+  blocked: { label: "Blocked", className: "status-blocked" },
 };
 
 const cardCategoryLabels: Record<string, string> = {
@@ -163,8 +162,8 @@ export default function CardManagement() {
 
   const handleSubmitLimits = () => {
     toast({
-      title: "Approval Request Submitted",
-      description: "Your limit change request has been submitted for approval.",
+      title: "Limits Updated",
+      description: "Card spending limits have been updated successfully.",
     });
     setLimitsDialogOpen(false);
   };
@@ -231,22 +230,18 @@ export default function CardManagement() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 rounded-xl bg-success/10 border border-success/20">
           <p className="text-2xl font-bold text-success">4,520</p>
           <p className="text-sm text-success/80">Active Cards</p>
         </div>
-        <div className="p-4 rounded-xl bg-warning/10 border border-warning/20">
-          <p className="text-2xl font-bold text-warning">320</p>
-          <p className="text-sm text-warning/80">Paused Cards</p>
+        <div className="p-4 rounded-xl bg-muted border border-border">
+          <p className="text-2xl font-bold text-muted-foreground">156</p>
+          <p className="text-sm text-muted-foreground">Expired Cards</p>
         </div>
         <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20">
           <p className="text-2xl font-bold text-destructive">89</p>
           <p className="text-sm text-destructive/80">Blocked Cards</p>
-        </div>
-        <div className="p-4 rounded-xl bg-muted border border-border">
-          <p className="text-2xl font-bold text-muted-foreground">156</p>
-          <p className="text-sm text-muted-foreground">Expired Cards</p>
         </div>
       </div>
 
@@ -397,12 +392,6 @@ export default function CardManagement() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
-              <div className="flex items-center gap-2 text-warning text-sm">
-                <Clock className="w-4 h-4" />
-                <span>This request requires supervisor approval</span>
-              </div>
-            </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Daily Transaction Limit

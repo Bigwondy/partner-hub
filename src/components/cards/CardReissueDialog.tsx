@@ -46,7 +46,6 @@ export function CardReissueDialog({
 }: CardReissueDialogProps) {
   const [reason, setReason] = useState("");
   const [deliveryType, setDeliveryType] = useState("standard");
-  const [newCardType, setNewCardType] = useState(cardType);
   const { toast } = useToast();
 
   const handleSubmit = () => {
@@ -61,7 +60,7 @@ export function CardReissueDialog({
 
     toast({
       title: "Reissue Request Submitted",
-      description: `A new ${newCardType} card will be issued for ${cardHolder}`,
+      description: `A replacement card will be issued for ${cardHolder}`,
     });
     setReason("");
     setDeliveryType("standard");
@@ -98,19 +97,6 @@ export function CardReissueDialog({
                     {r}
                   </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>New Card Type</Label>
-            <Select value={newCardType} onValueChange={setNewCardType}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Instant">Instant Card</SelectItem>
-                <SelectItem value="Embossed">Embossed Card</SelectItem>
-                <SelectItem value="Virtual">Virtual Card</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -45,6 +45,7 @@ const modulesList = [
   { id: "dashboard", label: "Dashboard" },
   { id: "cards", label: "Cards" },
   { id: "requests", label: "Card Requests" },
+  { id: "approvals", label: "Approvals" },
   { id: "disputes", label: "Disputes" },
   { id: "reports", label: "Reports" },
   { id: "setup", label: "Setup" },
@@ -261,31 +262,6 @@ const [newRole, setNewRole] = useState({
         </Dialog>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="metric-card">
-          <p className="text-sm font-medium text-muted-foreground">Total Roles</p>
-          <p className="text-2xl font-bold text-foreground mt-1">{roles.length}</p>
-        </div>
-        <div className="metric-card">
-          <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-          <p className="text-2xl font-bold text-foreground mt-1">
-            {roles.reduce((acc, role) => acc + role.usersCount, 0)}
-          </p>
-        </div>
-        <div className="metric-card">
-          <p className="text-sm font-medium text-muted-foreground">Admin Roles</p>
-          <p className="text-2xl font-bold text-foreground mt-1">
-            {roles.filter((r) => r.privileges.includes("all") || r.privileges.some(p => p.startsWith("admin"))).length}
-          </p>
-        </div>
-        <div className="metric-card">
-          <p className="text-sm font-medium text-muted-foreground">Custom Roles</p>
-          <p className="text-2xl font-bold text-foreground mt-1">
-            {roles.filter((r) => !r.privileges.includes("all")).length}
-          </p>
-        </div>
-      </div>
 
       {/* Roles Table */}
       <div className="card-elevated">
