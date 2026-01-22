@@ -227,47 +227,18 @@ export function SettlementChart() {
         <div className="card-elevated p-4">
           <p className="text-xs text-muted-foreground mb-1">Annual Transaction Volume</p>
           <p className="text-xl font-bold text-foreground">{formatCurrency(totalTransactions)}</p>
-          <p className="text-xs text-muted-foreground mt-1">Total processed in 12 months</p>
         </div>
         <div className="card-elevated p-4">
           <p className="text-xs text-muted-foreground mb-1">Annual Settled Amount</p>
           <p className="text-xl font-bold text-success">{formatCurrency(totalSettled)}</p>
-          <p className="text-xs text-muted-foreground mt-1">Successfully reconciled</p>
         </div>
         <div className="card-elevated p-4">
           <p className="text-xs text-muted-foreground mb-1">Annual Charges</p>
           <p className="text-xl font-bold text-warning">{formatCurrency(totalCharges)}</p>
-          <p className="text-xs text-muted-foreground mt-1">Total processing fees</p>
         </div>
         <div className="card-elevated p-4">
           <p className="text-xs text-muted-foreground mb-1">Average Settlement Rate</p>
           <p className="text-xl font-bold text-accent">{avgSettlementRate}%</p>
-          <p className="text-xs text-muted-foreground mt-1">Transaction to settlement ratio</p>
-        </div>
-      </div>
-
-      {/* Insights */}
-      <div className="card-elevated p-5">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Key Insights</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-3 rounded-lg bg-success/5 border border-success/20">
-            <p className="text-sm font-medium text-success mb-1">Peak Performance</p>
-            <p className="text-xs text-muted-foreground">
-              December recorded the highest transaction volume at ₦78M, a 20% increase from November.
-            </p>
-          </div>
-          <div className="p-3 rounded-lg bg-info/5 border border-info/20">
-            <p className="text-sm font-medium text-info mb-1">Seasonal Trend</p>
-            <p className="text-xs text-muted-foreground">
-              Q4 shows consistent growth pattern, ideal for capacity planning and resource allocation.
-            </p>
-          </div>
-          <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
-            <p className="text-sm font-medium text-accent mb-1">Cost Efficiency</p>
-            <p className="text-xs text-muted-foreground">
-              Charge rate maintained at ~3.5% throughout the year, indicating stable processing costs.
-            </p>
-          </div>
         </div>
       </div>
     </div>

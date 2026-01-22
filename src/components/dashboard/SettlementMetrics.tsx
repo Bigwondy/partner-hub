@@ -6,7 +6,6 @@ const metrics = [
     value: "₦336.0M",
     previousValue: "₦283.5M",
     change: 18.5,
-    description: "Accumulated sum of all transaction values processed",
     icon: Wallet,
     iconBg: "bg-primary/10",
     iconColor: "text-primary",
@@ -16,7 +15,6 @@ const metrics = [
     value: "₦324.2M",
     previousValue: "₦276.7M",
     change: 17.2,
-    description: "Funds successfully transferred and reconciled",
     icon: CheckCircle,
     iconBg: "bg-success/10",
     iconColor: "text-success",
@@ -26,7 +24,6 @@ const metrics = [
     value: "₦11.8M",
     previousValue: "₦10.9M",
     change: 8.4,
-    description: "Fees and deductions from transaction processing",
     icon: Receipt,
     iconBg: "bg-warning/10",
     iconColor: "text-warning",
@@ -39,28 +36,24 @@ const additionalMetrics = [
     value: "96.5%",
     change: 0.8,
     isPositive: true,
-    description: "Percentage of transactions successfully settled",
   },
   {
     title: "Average Settlement Time",
     value: "1.2 days",
     change: -15.2,
     isPositive: true,
-    description: "Average time to complete settlements",
   },
   {
     title: "Pending Settlements",
     value: "₦8.4M",
     change: -22.1,
     isPositive: true,
-    description: "Transactions awaiting settlement",
   },
   {
     title: "Charge Rate",
     value: "3.51%",
     change: -0.3,
     isPositive: true,
-    description: "Average charges as percentage of transactions",
   },
 ];
 
@@ -84,7 +77,6 @@ export function SettlementMetrics() {
             <div>
               <p className="text-sm text-muted-foreground mb-1">{metric.title}</p>
               <p className="text-2xl font-bold text-foreground mb-2">{metric.value}</p>
-              <p className="text-xs text-muted-foreground">{metric.description}</p>
               <div className="mt-3 pt-3 border-t border-border">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Previous Period</span>
@@ -113,8 +105,7 @@ export function SettlementMetrics() {
                 </span>
               </div>
             </div>
-            <p className="text-xl font-bold text-foreground mb-1">{metric.value}</p>
-            <p className="text-xs text-muted-foreground">{metric.description}</p>
+            <p className="text-xl font-bold text-foreground">{metric.value}</p>
           </div>
         ))}
       </div>
