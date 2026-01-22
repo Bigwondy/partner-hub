@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { Plus, MoreHorizontal, Edit, Trash2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -114,24 +114,28 @@ export default function AdminUsers() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const [newUser, setNewUser] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    password: "",
     phoneNumber: "",
     role: "",
   });
   const { toast } = useToast();
 
-  const filteredUsers = users.filter(
-    (user) =>
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+    return matchesSearch && matchesStatus && matchesRole;
+  });
 
   const handleCreateUser = () => {
-    if (!newUser.firstName || !newUser.lastName || !newUser.email || !newUser.password || !newUser.phoneNumber || !newUser.role) {
+    if (!newUser.firstName || !newUser.lastName || !newUser.email || !newUser.phoneNumber || !newUser.role) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -152,7 +156,7 @@ export default function AdminUsers() {
     };
 
     setUsers([...users, newUserData]);
-    setNewUser({ firstName: "", lastName: "", email: "", password: "", phoneNumber: "", role: "" });
+    setNewUser({ firstName: "", lastName: "", email: "", phoneNumber: "", role: "" });
     setDialogOpen(false);
     toast({
       title: "User Created",
@@ -183,11 +187,6 @@ export default function AdminUsers() {
       description: `${user.firstName} ${user.lastName} has been deactivated.`,
     });
   };
-
-  const roleStats = roleNames.map((role) => ({
-    role,
-    count: users.filter((u) => u.role === role).length,
-  }));
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -248,18 +247,6 @@ export default function AdminUsers() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={newUser.password}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, password: e.target.value })
-                  }
-                  placeholder="Enter password"
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="phoneNumber">Phone Number</Label>
                 <Input
                   id="phoneNumber"
@@ -307,22 +294,8 @@ export default function AdminUsers() {
         </Dialog>
       </div>
 
-      {/* Role Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {roleStats.map((stat) => (
-          <div key={stat.role} className="metric-card">
-            <p className="text-sm font-medium text-muted-foreground">
-              {stat.role}
-            </p>
-            <p className="text-2xl font-bold text-foreground mt-1">
-              {stat.count}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Search */}
-      <div className="flex items-center gap-4">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-4">
         <div className="relative flex-1 max-w-sm">
           <Input
             placeholder="Search users..."
@@ -330,6 +303,33 @@ export default function AdminUsers() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-4"
           />
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-muted-foreground" />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Inactive">Inactive</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Roles</SelectItem>
+              {roleNames.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {role}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
