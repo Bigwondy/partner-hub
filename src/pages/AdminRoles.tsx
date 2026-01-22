@@ -49,8 +49,6 @@ const modulesList = [
   { id: "disputes", label: "Disputes" },
   { id: "reports", label: "Reports" },
   { id: "setup", label: "Setup" },
-  { id: "admin.users", label: "Admin - Users" },
-  { id: "admin.roles", label: "Admin - Roles" },
 ];
 
 const permissionTypes = ["view", "create", "edit", "delete"] as const;
