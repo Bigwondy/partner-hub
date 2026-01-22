@@ -24,12 +24,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useApprovalsStore, ApprovalRequest } from "@/stores/approvalsStore";
 const typeConfig: Record<string, { label: string; className: string }> = {
   card_request: { label: "Card Request", className: "bg-info/10 text-info" },
-  limit_change: { label: "Limit Change", className: "bg-accent/10 text-accent" },
-  hotlist: { label: "Hotlist", className: "bg-destructive/10 text-destructive" },
-  reissue: { label: "Reissue", className: "bg-warning/10 text-warning" },
-  status_change: { label: "Status Change", className: "bg-primary/10 text-primary" },
-  user_create: { label: "User Create", className: "bg-primary/10 text-primary" },
-  config_change: { label: "Config Change", className: "bg-accent/10 text-accent" },
 };
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -49,7 +43,9 @@ export default function Approvals() {
   const [activeTab, setActiveTab] = useState("pending");
   const { toast } = useToast();
 
-  const pendingApprovals = approvals.filter((a) => a.status === "pending");
+  // Filter to only show card requests
+  const cardRequestApprovals = approvals.filter((a) => a.type === "card_request");
+  const pendingApprovals = cardRequestApprovals.filter((a) => a.status === "pending");
 
   const filteredPending = pendingApprovals.filter(
     (a) =>
@@ -103,7 +99,6 @@ export default function Approvals() {
           <tr>
             <th>Date</th>
             <th>Subject</th>
-            <th>Type</th>
             <th>Requested By</th>
             <th>Status</th>
             <th className="w-24">Actions</th>
@@ -112,7 +107,7 @@ export default function Approvals() {
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan={6} className="text-center py-8 text-muted-foreground">
+              <td colSpan={5} className="text-center py-8 text-muted-foreground">
                 No requests found
               </td>
             </tr>
@@ -122,11 +117,6 @@ export default function Approvals() {
                 <td className="text-muted-foreground text-sm">{formatDate(approval.createdAt)}</td>
                 <td>
                   <span className="font-medium text-foreground">{approval.subject}</span>
-                </td>
-                <td>
-                  <Badge className={typeConfig[approval.type]?.className || "bg-muted text-muted-foreground"}>
-                    {typeConfig[approval.type]?.label || approval.type}
-                  </Badge>
                 </td>
                 <td className="text-muted-foreground">{approval.requestedBy}</td>
                 <td>
@@ -162,9 +152,9 @@ export default function Approvals() {
     <div className="space-y-6 animate-fade-in">
       {/* Page Header */}
       <div className="page-header">
-        <h1 className="page-title">Approvals</h1>
+        <h1 className="page-title">Card Request Approvals</h1>
         <p className="page-description">
-          Review and process pending approval requests
+          Review and process pending card request approvals
         </p>
       </div>
 
@@ -190,7 +180,7 @@ export default function Approvals() {
             <Check className="w-5 h-5 text-success" />
             <div>
               <p className="text-2xl font-bold text-success">
-                {approvals.filter((a) => a.status === "approved").length}
+                {cardRequestApprovals.filter((a) => a.status === "approved").length}
               </p>
               <p className="text-sm text-success/80">Approved</p>
             </div>
@@ -204,7 +194,7 @@ export default function Approvals() {
             <X className="w-5 h-5 text-destructive" />
             <div>
               <p className="text-2xl font-bold text-destructive">
-                {approvals.filter((a) => a.status === "rejected").length}
+                {cardRequestApprovals.filter((a) => a.status === "rejected").length}
               </p>
               <p className="text-sm text-destructive/80">Rejected</p>
             </div>
@@ -233,10 +223,10 @@ export default function Approvals() {
             Pending ({filteredPending.length})
           </TabsTrigger>
           <TabsTrigger value="approved">
-            Approved ({approvals.filter((a) => a.status === "approved").length})
+            Approved ({cardRequestApprovals.filter((a) => a.status === "approved").length})
           </TabsTrigger>
           <TabsTrigger value="rejected">
-            Rejected ({approvals.filter((a) => a.status === "rejected").length})
+            Rejected ({cardRequestApprovals.filter((a) => a.status === "rejected").length})
           </TabsTrigger>
         </TabsList>
 
@@ -245,7 +235,7 @@ export default function Approvals() {
         </TabsContent>
 
         <TabsContent value="approved">
-          <ApprovalTable data={approvals.filter((a) => 
+          <ApprovalTable data={cardRequestApprovals.filter((a) => 
             a.status === "approved" &&
             (a.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
              a.requestedBy.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -253,7 +243,7 @@ export default function Approvals() {
         </TabsContent>
 
         <TabsContent value="rejected">
-          <ApprovalTable data={approvals.filter((a) => 
+          <ApprovalTable data={cardRequestApprovals.filter((a) => 
             a.status === "rejected" &&
             (a.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
              a.requestedBy.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -271,10 +261,7 @@ export default function Approvals() {
 
           {selectedApproval && (
             <div className="mt-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <Badge className={typeConfig[selectedApproval.type].className}>
-                  {typeConfig[selectedApproval.type].label}
-                </Badge>
+              <div className="flex items-center justify-end">
                 <Badge className={statusConfig[selectedApproval.status].className}>
                   {statusConfig[selectedApproval.status].label}
                 </Badge>
