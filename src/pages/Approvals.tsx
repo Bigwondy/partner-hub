@@ -38,11 +38,6 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   rejected: { label: "Rejected", className: "bg-destructive/10 text-destructive" },
 };
 
-const priorityConfig: Record<string, { label: string; className: string }> = {
-  low: { label: "Low", className: "bg-muted text-muted-foreground" },
-  medium: { label: "Medium", className: "bg-info/10 text-info" },
-  high: { label: "High", className: "bg-destructive/10 text-destructive" },
-};
 export default function Approvals() {
   const { approvals, updateApproval } = useApprovalsStore();
   const [searchQuery, setSearchQuery] = useState("");
@@ -110,15 +105,14 @@ export default function Approvals() {
             <th>Subject</th>
             <th>Type</th>
             <th>Requested By</th>
-            <th>Priority</th>
             <th>Status</th>
-            <th className="w-32">Actions</th>
+            <th className="w-24">Actions</th>
           </tr>
         </thead>
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan={7} className="text-center py-8 text-muted-foreground">
+              <td colSpan={6} className="text-center py-8 text-muted-foreground">
                 No requests found
               </td>
             </tr>
@@ -130,51 +124,25 @@ export default function Approvals() {
                   <span className="font-medium text-foreground">{approval.subject}</span>
                 </td>
                 <td>
-                  <Badge className={typeConfig[approval.type].className}>
-                    {typeConfig[approval.type].label}
+                  <Badge className={typeConfig[approval.type]?.className || "bg-muted text-muted-foreground"}>
+                    {typeConfig[approval.type]?.label || approval.type}
                   </Badge>
                 </td>
                 <td className="text-muted-foreground">{approval.requestedBy}</td>
-                <td>
-                  <Badge className={priorityConfig[approval.priority].className}>
-                    {priorityConfig[approval.priority].label}
-                  </Badge>
-                </td>
                 <td>
                   <Badge className={statusConfig[approval.status].className}>
                     {statusConfig[approval.status].label}
                   </Badge>
                 </td>
                 <td>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewDetails(approval)}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    {approval.status === "pending" && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-success hover:text-success hover:bg-success/10"
-                          onClick={() => handleAction(approval, "approve")}
-                        >
-                          <Check className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => handleAction(approval, "reject")}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleViewDetails(approval)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
+                  </Button>
                 </td>
               </tr>
             ))
@@ -358,16 +326,14 @@ export default function Approvals() {
                     className="flex-1 btn-accent"
                     onClick={() => handleAction(selectedApproval, "approve")}
                   >
-                    <Check className="w-4 h-4 mr-2" />
-                    Approve
+                    Accept
                   </Button>
                   <Button
                     variant="destructive"
                     className="flex-1"
                     onClick={() => handleAction(selectedApproval, "reject")}
                   >
-                    <X className="w-4 h-4 mr-2" />
-                    Reject
+                    Decline
                   </Button>
                 </div>
               )}
@@ -381,12 +347,12 @@ export default function Approvals() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {actionType === "approve" ? "Approve Request" : "Reject Request"}
+              {actionType === "approve" ? "Accept Request" : "Decline Request"}
             </DialogTitle>
             <DialogDescription>
               {actionType === "approve"
-                ? "Are you sure you want to approve this request?"
-                : "Are you sure you want to reject this request?"}
+                ? "Are you sure you want to accept this request?"
+                : "Are you sure you want to decline this request?"}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -409,7 +375,7 @@ export default function Approvals() {
               className={actionType === "approve" ? "btn-accent" : ""}
               onClick={confirmAction}
             >
-              {actionType === "approve" ? "Approve" : "Reject"}
+              {actionType === "approve" ? "Accept" : "Decline"}
             </Button>
           </DialogFooter>
         </DialogContent>
