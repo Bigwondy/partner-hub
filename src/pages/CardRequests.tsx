@@ -42,8 +42,6 @@ const requests = [
     status: "in_progress",
     createdAt: "2024-01-05 14:32",
     requestedBy: "Sarah Williams",
-    approvedBy: "John Doe",
-    approvedAt: "2024-01-05 15:00",
     notes: "Urgent order for new branch opening",
   },
   {
@@ -53,11 +51,9 @@ const requests = [
     quantity: 50,
     type: "embossed",
     category: "physical",
-    status: "ready",
+    status: "completed",
     createdAt: "2024-01-05 11:15",
     requestedBy: "John Doe",
-    approvedBy: "Sarah Williams",
-    approvedAt: "2024-01-05 12:30",
     notes: "Premium cards for VIP customers",
   },
   {
@@ -67,11 +63,9 @@ const requests = [
     quantity: 200,
     type: "instant",
     category: "physical",
-    status: "pending",
+    status: "received",
     createdAt: "2024-01-04 16:48",
     requestedBy: "Sarah Williams",
-    approvedBy: null,
-    approvedAt: null,
     notes: "Stock replenishment for Lagos branches",
   },
   {
@@ -81,11 +75,9 @@ const requests = [
     quantity: 25,
     type: "virtual",
     category: "virtual",
-    status: "ready",
+    status: "completed",
     createdAt: "2024-01-04 09:22",
     requestedBy: "John Doe",
-    approvedBy: "Sarah Williams",
-    approvedAt: "2024-01-04 10:00",
     notes: "Virtual cards for corporate clients",
   },
   {
@@ -95,12 +87,10 @@ const requests = [
     quantity: 150,
     type: "embossed",
     category: "physical",
-    status: "failed",
+    status: "in_progress",
     createdAt: "2024-01-03 13:05",
     requestedBy: "Sarah Williams",
-    approvedBy: "John Doe",
-    approvedAt: "2024-01-03 14:00",
-    notes: "File validation error - incorrect format",
+    notes: "Processing for delivery",
   },
   {
     id: "REQ-2024-001229",
@@ -112,8 +102,6 @@ const requests = [
     status: "in_progress",
     createdAt: "2024-01-03 10:41",
     requestedBy: "John Doe",
-    approvedBy: "Sarah Williams",
-    approvedAt: "2024-01-03 11:15",
     notes: "Regular stock order",
   },
   {
@@ -123,20 +111,17 @@ const requests = [
     quantity: 500,
     type: "virtual",
     category: "virtual",
-    status: "ready",
+    status: "completed",
     createdAt: "2024-01-02 14:00",
     requestedBy: "Sarah Williams",
-    approvedBy: "John Doe",
-    approvedAt: "2024-01-02 15:00",
     notes: "Virtual cards for SME program",
   },
 ];
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  pending: { label: "Pending", className: "bg-muted text-muted-foreground" },
+  received: { label: "Received", className: "bg-muted text-muted-foreground" },
   in_progress: { label: "In Progress", className: "bg-warning/10 text-warning" },
-  ready: { label: "Ready for Issuance", className: "bg-success/10 text-success" },
-  failed: { label: "Failed", className: "bg-destructive/10 text-destructive" },
+  completed: { label: "Completed", className: "bg-success/10 text-success" },
 };
 
 const typeConfig: Record<string, { label: string; className: string }> = {
@@ -319,10 +304,9 @@ export default function CardRequests() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="received">Received</SelectItem>
                         <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="ready">Ready</SelectItem>
-                        <SelectItem value="failed">Failed</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -456,30 +440,21 @@ export default function CardRequests() {
                       <p className="text-muted-foreground">{selectedRequest.createdAt} by {selectedRequest.requestedBy}</p>
                     </div>
                   </div>
-                  {selectedRequest.approvedBy && (
+                  {selectedRequest.status === "completed" && (
                     <div className="flex items-start gap-3">
                       <div className="w-2 h-2 rounded-full bg-success mt-1.5" />
                       <div className="flex-1">
-                        <p className="text-foreground">Approved</p>
-                        <p className="text-muted-foreground">{selectedRequest.approvedAt} by {selectedRequest.approvedBy}</p>
-                      </div>
-                    </div>
-                  )}
-                  {selectedRequest.status === "ready" && (
-                    <div className="flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-success mt-1.5" />
-                      <div className="flex-1">
-                        <p className="text-foreground">Ready for Issuance</p>
+                        <p className="text-foreground">Completed</p>
                         <p className="text-muted-foreground">Cards are ready to be collected</p>
                       </div>
                     </div>
                   )}
-                  {selectedRequest.status === "failed" && (
+                  {selectedRequest.status === "in_progress" && (
                     <div className="flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-destructive mt-1.5" />
+                      <div className="w-2 h-2 rounded-full bg-warning mt-1.5" />
                       <div className="flex-1">
-                        <p className="text-foreground">Failed</p>
-                        <p className="text-muted-foreground">Request encountered an issue</p>
+                        <p className="text-foreground">In Progress</p>
+                        <p className="text-muted-foreground">Request is being processed</p>
                       </div>
                     </div>
                   )}

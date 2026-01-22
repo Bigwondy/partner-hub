@@ -16,6 +16,7 @@ import {
   Settings,
   X,
   LucideIcon,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -32,7 +33,7 @@ interface NavItem {
   requiredPrivileges: string[];
 }
 
-// Order: Dashboard → Admin → Reports → Card Management → Setup → Disputes
+// Order: Dashboard → Admin → Approvals → Reports → Card Management → Setup → Disputes
 const dashboardNav: NavItem[] = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard, requiredPrivileges: ["dashboard.view"] },
 ];
@@ -40,6 +41,10 @@ const dashboardNav: NavItem[] = [
 const adminNavigation: NavItem[] = [
   { name: "Users", href: "/admin/users", icon: Users, requiredPrivileges: ["admin.users.view"] },
   { name: "Roles", href: "/admin/roles", icon: Shield, requiredPrivileges: ["admin.roles.view"] },
+];
+
+const approvalsNav: NavItem[] = [
+  { name: "Approvals", href: "/approvals", icon: ClipboardCheck, requiredPrivileges: ["approvals.view"] },
 ];
 
 const reportsNav: NavItem[] = [
@@ -112,6 +117,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
 
   const filteredDashboard = filterNavItems(dashboardNav);
   const filteredAdmin = filterNavItems(adminNavigation);
+  const filteredApprovals = filterNavItems(approvalsNav);
   const filteredReports = filterNavItems(reportsNav);
   const filteredCardManagement = filterNavItems(cardManagementNav);
   const filteredSetup = filterNavItems(setupNav);
@@ -247,7 +253,27 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
           </div>
         )}
 
-        {/* 3. Reports */}
+        {/* 3. Approvals */}
+        {filteredApprovals.length > 0 && (
+          <div className="pt-2 space-y-1">
+            {filteredApprovals.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={handleNavClick}
+                className={cn(
+                  "nav-item",
+                  isActive(item.href) ? "nav-item-active" : "nav-item-inactive"
+                )}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                {!collapsed && <span>{item.name}</span>}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* 4. Reports */}
         {filteredReports.length > 0 && (
           <div className="pt-2 space-y-1">
             {filteredReports.map((item) => (
@@ -267,7 +293,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
           </div>
         )}
 
-        {/* 4. Card Management Section */}
+        {/* 5. Card Management Section */}
         {filteredCardManagement.length > 0 && (
           <div className="pt-2">
             {collapsed ? (
@@ -322,7 +348,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
           </div>
         )}
 
-        {/* 5. Setup */}
+        {/* 6. Setup */}
         {filteredSetup.length > 0 && (
           <div className="pt-2 space-y-1">
             {filteredSetup.map((item) => (
@@ -342,7 +368,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
           </div>
         )}
 
-        {/* 6. Disputes - Last item */}
+        {/* 7. Disputes - Last item */}
         {filteredDisputes.length > 0 && (
           <div className="pt-2 space-y-1">
             {filteredDisputes.map((item) => (

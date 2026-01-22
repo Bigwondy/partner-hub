@@ -50,9 +50,8 @@ interface CardDetailsSheetProps {
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   active: { label: "Active", className: "status-active" },
-  paused: { label: "Paused", className: "status-paused" },
-  blocked: { label: "Blocked", className: "status-blocked" },
   expired: { label: "Expired", className: "bg-muted text-muted-foreground" },
+  blocked: { label: "Blocked", className: "status-blocked" },
 };
 
 const cardCategoryLabels: Record<string, string> = {
@@ -75,10 +74,10 @@ export function CardDetailsSheet({
 
   if (!card) return null;
 
-  const handleActionWithApproval = (action: string) => {
+  const handleStatusChange = (action: string) => {
     toast({
-      title: "Approval Request Submitted",
-      description: `Your ${action} request has been submitted for approval. You will be notified once it's reviewed.`,
+      title: "Status Updated",
+      description: `Card status has been changed to ${action}.`,
     });
   };
 
@@ -193,10 +192,6 @@ export function CardDetailsSheet({
             {/* Actions */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Actions</h3>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                All actions require approval
-              </p>
               
               <div className="grid grid-cols-2 gap-3">
                 <Button
@@ -266,18 +261,6 @@ export function CardDetailsSheet({
               )}
             </div>
 
-            {/* Pending Approvals Notice */}
-            <div className="p-4 rounded-lg bg-warning/10 border border-warning/20">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-warning mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-warning">Approval Workflow</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    All card management actions require supervisor approval before taking effect.
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </SheetContent>
       </Sheet>
@@ -310,9 +293,9 @@ export function CardDetailsSheet({
         onOpenChange={setStatusToggleOpen}
         cardNumber={card.maskedPan}
         cardHolder={card.customerName}
-        currentStatus={card.status === 'active' ? 'Active' : card.status === 'paused' ? 'Paused' : 'Blocked'}
+        currentStatus={card.status === 'active' ? 'Active' : card.status === 'expired' ? 'Expired' : 'Blocked'}
         onStatusChange={(newStatus) => {
-          handleActionWithApproval(`status change to ${newStatus}`);
+          handleStatusChange(newStatus);
         }}
       />
     </>
