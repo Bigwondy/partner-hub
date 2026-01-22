@@ -161,6 +161,7 @@ export default function Approvals() {
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<"approve" | "reject">("approve");
   const [comment, setComment] = useState("");
+  const [activeTab, setActiveTab] = useState("pending");
   const { toast } = useToast();
 
   const pendingApprovals = approvals.filter((a) => a.status === "pending");
@@ -310,7 +311,10 @@ export default function Approvals() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl bg-warning/10 border border-warning/20">
+        <button
+          onClick={() => setActiveTab("pending")}
+          className="p-4 rounded-xl bg-warning/10 border border-warning/20 hover:bg-warning/20 transition-colors text-left"
+        >
           <div className="flex items-center gap-3">
             <Clock className="w-5 h-5 text-warning" />
             <div>
@@ -318,8 +322,11 @@ export default function Approvals() {
               <p className="text-sm text-warning/80">Pending</p>
             </div>
           </div>
-        </div>
-        <div className="p-4 rounded-xl bg-success/10 border border-success/20">
+        </button>
+        <button
+          onClick={() => setActiveTab("approved")}
+          className="p-4 rounded-xl bg-success/10 border border-success/20 hover:bg-success/20 transition-colors text-left"
+        >
           <div className="flex items-center gap-3">
             <Check className="w-5 h-5 text-success" />
             <div>
@@ -329,8 +336,11 @@ export default function Approvals() {
               <p className="text-sm text-success/80">Approved</p>
             </div>
           </div>
-        </div>
-        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+        </button>
+        <button
+          onClick={() => setActiveTab("rejected")}
+          className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/20 transition-colors text-left"
+        >
           <div className="flex items-center gap-3">
             <X className="w-5 h-5 text-destructive" />
             <div>
@@ -340,7 +350,7 @@ export default function Approvals() {
               <p className="text-sm text-destructive/80">Rejected</p>
             </div>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Search Bar */}
@@ -358,13 +368,16 @@ export default function Approvals() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="pending" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="pending">
             Pending ({filteredPending.length})
           </TabsTrigger>
-          <TabsTrigger value="processed">
-            Processed ({filteredProcessed.length})
+          <TabsTrigger value="approved">
+            Approved ({approvals.filter((a) => a.status === "approved").length})
+          </TabsTrigger>
+          <TabsTrigger value="rejected">
+            Rejected ({approvals.filter((a) => a.status === "rejected").length})
           </TabsTrigger>
         </TabsList>
 
@@ -372,8 +385,20 @@ export default function Approvals() {
           <ApprovalTable data={filteredPending} />
         </TabsContent>
 
-        <TabsContent value="processed">
-          <ApprovalTable data={filteredProcessed} />
+        <TabsContent value="approved">
+          <ApprovalTable data={approvals.filter((a) => 
+            a.status === "approved" &&
+            (a.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             a.requestedBy.toLowerCase().includes(searchQuery.toLowerCase()))
+          )} />
+        </TabsContent>
+
+        <TabsContent value="rejected">
+          <ApprovalTable data={approvals.filter((a) => 
+            a.status === "rejected" &&
+            (a.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             a.requestedBy.toLowerCase().includes(searchQuery.toLowerCase()))
+          )} />
         </TabsContent>
       </Tabs>
 

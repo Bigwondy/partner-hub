@@ -4,11 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const cardProfiles = [
-  { id: "visa_classic", name: "Visa Classic", fee: 2500 },
-  { id: "visa_gold", name: "Visa Gold", fee: 5000 },
-  { id: "mastercard_standard", name: "Mastercard Standard", fee: 2500 },
-  { id: "mastercard_platinum", name: "Mastercard Platinum", fee: 7500 },
-  { id: "verve_standard", name: "Verve Standard", fee: 1500 },
+  { id: "visa_classic", name: "Visa Classic" },
+  { id: "visa_gold", name: "Visa Gold" },
+  { id: "mastercard_standard", name: "Mastercard Standard" },
+  { id: "mastercard_platinum", name: "Mastercard Platinum" },
+  { id: "verve_standard", name: "Verve Standard" },
 ];
 
 type CardType = "instant" | "embossed" | null;
@@ -21,7 +21,6 @@ export default function NewCardRequest() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const selectedProfileData = cardProfiles.find((p) => p.id === cardProfile);
-  const totalFee = selectedProfileData ? selectedProfileData.fee * parseInt(quantity || "0") : 0;
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -64,10 +63,10 @@ export default function NewCardRequest() {
 
     const cardTypeName = selectedType === "instant" ? "Instant" : "Embossed";
 
-    toast.success("Card request submitted successfully!", {
-      description: `Your ${cardTypeName} card request has been submitted.`,
+    toast.success("Card request submitted for approval!", {
+      description: `Your ${cardTypeName} card request has been sent to the approvals queue.`,
     });
-    navigate("/card-requests");
+    navigate("/approvals");
   };
 
   const handleBack = () => {
@@ -168,7 +167,7 @@ export default function NewCardRequest() {
                 <option value="">Select a card profile</option>
                 {cardProfiles.map((profile) => (
                   <option key={profile.id} value={profile.id}>
-                    {profile.name} - ₦{profile.fee.toLocaleString()}/card
+                    {profile.name}
                   </option>
                 ))}
               </select>
@@ -202,10 +201,6 @@ export default function NewCardRequest() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Quantity</span>
                     <span className="font-medium text-foreground">{quantity} card(s)</span>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-info/20">
-                    <span className="text-muted-foreground">Total Fee</span>
-                    <span className="text-lg font-bold text-info">₦{totalFee.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -253,7 +248,7 @@ export default function NewCardRequest() {
                 <option value="">Select a card profile</option>
                 {cardProfiles.map((profile) => (
                   <option key={profile.id} value={profile.id}>
-                    {profile.name} - ₦{profile.fee.toLocaleString()}/card
+                    {profile.name}
                   </option>
                 ))}
               </select>
