@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, X, Eye, Clock, Search, Filter } from "lucide-react";
+import { Check, X, Eye, Clock, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,124 +21,15 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-
-interface ApprovalRequest {
-  id: string;
-  type: "card_request" | "limit_change" | "hotlist" | "reissue" | "status_change";
-  requestedBy: string;
-  requestedByEmail: string;
-  subject: string;
-  description: string;
-  status: "pending" | "approved" | "rejected";
-  priority: "low" | "medium" | "high";
-  createdAt: string;
-  metadata?: Record<string, string>;
-}
-
-const initialApprovals: ApprovalRequest[] = [
-  {
-    id: "APR-001",
-    type: "card_request",
-    requestedBy: "John Smith",
-    requestedByEmail: "john.smith@partner.com",
-    subject: "Bulk Card Request - 500 Instant Cards",
-    description: "Request for 500 instant cards for new customer onboarding campaign",
-    status: "pending",
-    priority: "high",
-    createdAt: "2024-01-15 10:30",
-    metadata: {
-      cardType: "Instant",
-      profile: "Standard Debit",
-      quantity: "500",
-    },
-  },
-  {
-    id: "APR-002",
-    type: "limit_change",
-    requestedBy: "Sarah Johnson",
-    requestedByEmail: "sarah.j@partner.com",
-    subject: "Card Limit Increase - **** 4521",
-    description: "Increase daily transaction limit from ₦100,000 to ₦500,000",
-    status: "pending",
-    priority: "medium",
-    createdAt: "2024-01-15 09:15",
-    metadata: {
-      cardPan: "**** **** **** 4521",
-      currentLimit: "₦100,000",
-      requestedLimit: "₦500,000",
-    },
-  },
-  {
-    id: "APR-003",
-    type: "hotlist",
-    requestedBy: "Michael Brown",
-    requestedByEmail: "m.brown@partner.com",
-    subject: "Hotlist Card - Fraud Suspected",
-    description: "Customer reported unauthorized transactions, requesting immediate hotlist",
-    status: "pending",
-    priority: "high",
-    createdAt: "2024-01-15 08:45",
-    metadata: {
-      cardPan: "**** **** **** 7892",
-      reason: "Fraud suspected",
-      customerName: "Adebayo Olamide",
-    },
-  },
-  {
-    id: "APR-004",
-    type: "card_request",
-    requestedBy: "David Wilson",
-    requestedByEmail: "d.wilson@partner.com",
-    subject: "Embossed Card Request - 100 Cards",
-    description: "Request for personalized embossed cards with company branding",
-    status: "approved",
-    priority: "medium",
-    createdAt: "2024-01-13 11:00",
-    metadata: {
-      cardType: "Embossed",
-      profile: "Premium Debit",
-      quantity: "100",
-    },
-  },
-  {
-    id: "APR-005",
-    type: "status_change",
-    requestedBy: "Lisa Anderson",
-    requestedByEmail: "l.anderson@partner.com",
-    subject: "Deactivate Card - Customer Request",
-    description: "Customer requested temporary deactivation while traveling",
-    status: "approved",
-    priority: "low",
-    createdAt: "2024-01-12 15:45",
-    metadata: {
-      cardPan: "**** **** **** 9012",
-      action: "Deactivate",
-      reason: "Travel",
-    },
-  },
-  {
-    id: "APR-006",
-    type: "reissue",
-    requestedBy: "Admin User",
-    requestedByEmail: "admin@pavilion.com",
-    subject: "Card Reissue - Lost Card",
-    description: "Customer reported card lost, requesting replacement",
-    status: "rejected",
-    priority: "medium",
-    createdAt: "2024-01-11 10:00",
-    metadata: {
-      cardPan: "**** **** **** 3456",
-      reason: "Lost Card",
-    },
-  },
-];
-
+import { useApprovalsStore, ApprovalRequest } from "@/stores/approvalsStore";
 const typeConfig: Record<string, { label: string; className: string }> = {
   card_request: { label: "Card Request", className: "bg-info/10 text-info" },
   limit_change: { label: "Limit Change", className: "bg-accent/10 text-accent" },
   hotlist: { label: "Hotlist", className: "bg-destructive/10 text-destructive" },
   reissue: { label: "Reissue", className: "bg-warning/10 text-warning" },
   status_change: { label: "Status Change", className: "bg-primary/10 text-primary" },
+  user_create: { label: "User Create", className: "bg-primary/10 text-primary" },
+  config_change: { label: "Config Change", className: "bg-accent/10 text-accent" },
 };
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -152,9 +43,8 @@ const priorityConfig: Record<string, { label: string; className: string }> = {
   medium: { label: "Medium", className: "bg-info/10 text-info" },
   high: { label: "High", className: "bg-destructive/10 text-destructive" },
 };
-
 export default function Approvals() {
-  const [approvals, setApprovals] = useState<ApprovalRequest[]>(initialApprovals);
+  const { approvals, updateApproval } = useApprovalsStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedApproval, setSelectedApproval] = useState<ApprovalRequest | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -165,20 +55,12 @@ export default function Approvals() {
   const { toast } = useToast();
 
   const pendingApprovals = approvals.filter((a) => a.status === "pending");
-  const processedApprovals = approvals.filter((a) => a.status !== "pending");
 
   const filteredPending = pendingApprovals.filter(
     (a) =>
       a.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.requestedBy.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const filteredProcessed = processedApprovals.filter(
-    (a) =>
-      a.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.requestedBy.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const handleViewDetails = (approval: ApprovalRequest) => {
     setSelectedApproval(approval);
     setDetailsOpen(true);
@@ -193,13 +75,11 @@ export default function Approvals() {
   const confirmAction = () => {
     if (!selectedApproval) return;
 
-    setApprovals((prev) =>
-      prev.map((a) =>
-        a.id === selectedApproval.id
-          ? { ...a, status: actionType === "approve" ? "approved" : "rejected" }
-          : a
-      )
-    );
+    updateApproval(selectedApproval.id, {
+      status: actionType === "approve" ? "approved" : "rejected",
+      reviewedBy: "Current User",
+      reviewComment: comment || undefined,
+    });
 
     toast({
       title: actionType === "approve" ? "Request Approved" : "Request Rejected",
@@ -208,6 +88,17 @@ export default function Approvals() {
 
     setActionDialogOpen(false);
     setComment("");
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const ApprovalTable = ({ data }: { data: ApprovalRequest[] }) => (
@@ -234,7 +125,7 @@ export default function Approvals() {
           ) : (
             data.map((approval) => (
               <tr key={approval.id}>
-                <td className="text-muted-foreground text-sm">{approval.createdAt}</td>
+                <td className="text-muted-foreground text-sm">{formatDate(approval.createdAt)}</td>
                 <td>
                   <span className="font-medium text-foreground">{approval.subject}</span>
                 </td>
