@@ -24,6 +24,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useApprovalsStore, ApprovalRequest } from "@/stores/approvalsStore";
 const typeConfig: Record<string, { label: string; className: string }> = {
   card_request: { label: "Card Request", className: "bg-info/10 text-info" },
+  hotlist: { label: "Hotlist", className: "bg-destructive/10 text-destructive" },
+  reissue: { label: "Reissue", className: "bg-accent/10 text-accent" },
 };
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -43,9 +45,11 @@ export default function Approvals() {
   const [activeTab, setActiveTab] = useState("pending");
   const { toast } = useToast();
 
-  // Filter to only show card requests
-  const cardRequestApprovals = approvals.filter((a) => a.type === "card_request");
-  const pendingApprovals = cardRequestApprovals.filter((a) => a.status === "pending");
+  // Filter to show card requests, hotlist, and reissue requests
+  const cardRelatedApprovals = approvals.filter((a) => 
+    a.type === "card_request" || a.type === "hotlist" || a.type === "reissue"
+  );
+  const pendingApprovals = cardRelatedApprovals.filter((a) => a.status === "pending");
 
   const filteredPending = pendingApprovals.filter(
     (a) =>
@@ -98,6 +102,7 @@ export default function Approvals() {
         <thead>
           <tr>
             <th>Date</th>
+            <th>Type</th>
             <th>Subject</th>
             <th>Requested By</th>
             <th>Status</th>
@@ -107,7 +112,7 @@ export default function Approvals() {
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan={5} className="text-center py-8 text-muted-foreground">
+              <td colSpan={6} className="text-center py-8 text-muted-foreground">
                 No requests found
               </td>
             </tr>
@@ -115,6 +120,11 @@ export default function Approvals() {
             data.map((approval) => (
               <tr key={approval.id}>
                 <td className="text-muted-foreground text-sm">{formatDate(approval.createdAt)}</td>
+                <td>
+                  <Badge className={typeConfig[approval.type]?.className || "bg-muted text-muted-foreground"}>
+                    {typeConfig[approval.type]?.label || approval.type}
+                  </Badge>
+                </td>
                 <td>
                   <span className="font-medium text-foreground">{approval.subject}</span>
                 </td>
@@ -152,9 +162,9 @@ export default function Approvals() {
     <div className="space-y-6 animate-fade-in">
       {/* Page Header */}
       <div className="page-header">
-        <h1 className="page-title">Card Request Approvals</h1>
+        <h1 className="page-title">Approvals</h1>
         <p className="page-description">
-          Review and process pending card request approvals
+          Review and process pending card requests, hotlist, and reissue approvals
         </p>
       </div>
 
@@ -180,7 +190,7 @@ export default function Approvals() {
             <Check className="w-5 h-5 text-success" />
             <div>
               <p className="text-2xl font-bold text-success">
-                {cardRequestApprovals.filter((a) => a.status === "approved").length}
+                {cardRelatedApprovals.filter((a) => a.status === "approved").length}
               </p>
               <p className="text-sm text-success/80">Approved</p>
             </div>
@@ -194,7 +204,7 @@ export default function Approvals() {
             <X className="w-5 h-5 text-destructive" />
             <div>
               <p className="text-2xl font-bold text-destructive">
-                {cardRequestApprovals.filter((a) => a.status === "rejected").length}
+                {cardRelatedApprovals.filter((a) => a.status === "rejected").length}
               </p>
               <p className="text-sm text-destructive/80">Rejected</p>
             </div>
@@ -223,10 +233,10 @@ export default function Approvals() {
             Pending ({filteredPending.length})
           </TabsTrigger>
           <TabsTrigger value="approved">
-            Approved ({cardRequestApprovals.filter((a) => a.status === "approved").length})
+            Approved ({cardRelatedApprovals.filter((a) => a.status === "approved").length})
           </TabsTrigger>
           <TabsTrigger value="rejected">
-            Rejected ({cardRequestApprovals.filter((a) => a.status === "rejected").length})
+            Rejected ({cardRelatedApprovals.filter((a) => a.status === "rejected").length})
           </TabsTrigger>
         </TabsList>
 
@@ -235,7 +245,7 @@ export default function Approvals() {
         </TabsContent>
 
         <TabsContent value="approved">
-          <ApprovalTable data={cardRequestApprovals.filter((a) => 
+          <ApprovalTable data={cardRelatedApprovals.filter((a) => 
             a.status === "approved" &&
             (a.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
              a.requestedBy.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -243,7 +253,7 @@ export default function Approvals() {
         </TabsContent>
 
         <TabsContent value="rejected">
-          <ApprovalTable data={cardRequestApprovals.filter((a) => 
+          <ApprovalTable data={cardRelatedApprovals.filter((a) => 
             a.status === "rejected" &&
             (a.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
              a.requestedBy.toLowerCase().includes(searchQuery.toLowerCase()))
