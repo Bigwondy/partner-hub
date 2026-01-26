@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Lock, Mail, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
-import { Checkbox } from "@/components/ui/checkbox";
-
 
 // Test user accounts with different roles
 const testUsers = [
@@ -75,7 +73,6 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -102,117 +99,106 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Login Form */}
-      <div className="w-full bg-white flex flex-col min-h-screen">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <img src="/providus-logo.webp" alt="Providus Bank" className="w-8 h-8" />
-            <span className="text-lg font-bold text-slate-800 uppercase tracking-wide">ProvidusBank</span>
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 sm:p-4 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        {/* Gradient Orbs - scaled down on mobile */}
+        <div className="absolute top-0 -left-20 sm:-left-40 w-40 sm:w-80 h-40 sm:h-80 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" />
+        <div className="absolute top-0 -right-20 sm:-right-40 w-40 sm:w-80 h-40 sm:h-80 bg-accent/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: "1s" }} />
+        <div className="absolute -bottom-20 sm:-bottom-40 left-1/2 w-40 sm:w-80 h-40 sm:h-80 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style={{ animationDelay: "2s" }} />
+        
+        {/* Grid Pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)`,
+            backgroundSize: '50px 50px'
+          }}
+        />
+        
+        {/* Radial Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-slate-900/50" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10 animate-fade-in">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+          <img src="/providus-logo.webp" alt="Providus Bank" className="w-11 h-11 sm:w-14 sm:h-14" />
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">Providus Bank</h1>
+            <p className="text-xs sm:text-sm text-slate-400">Partner Portal</p>
           </div>
         </div>
 
-        {/* Form Container */}
-        <div className="flex-1 flex items-center justify-center p-6 sm:p-8">
-          <div className="w-full max-w-md">
-            {/* Icon */}
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-full border-2 border-slate-200 flex items-center justify-center">
-                <UserPlus className="w-7 h-7 text-slate-600" />
+        {/* Login Card */}
+        <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-2xl">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-white">Welcome back</h2>
+            <p className="text-slate-400 mt-1">Sign in to your account</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 pl-11 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  required
+                />
               </div>
             </div>
 
-            {/* Heading */}
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Login to your account</h2>
-              <p className="text-slate-500">Please sign in using your domain credentials.</p>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="example@cardinfra.com"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 pl-11 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 pl-11 pr-11 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Keep me logged in & Forgot password */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Checkbox 
-                    id="keepLoggedIn" 
-                    checked={keepLoggedIn}
-                    onCheckedChange={(checked) => setKeepLoggedIn(checked as boolean)}
-                  />
-                  <label htmlFor="keepLoggedIn" className="text-sm text-slate-600 cursor-pointer">
-                    Keep me logged in
-                  </label>
-                </div>
-                <button type="button" className="text-sm text-primary hover:underline font-medium">
-                  Forgot password?
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 pl-11 pr-11 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-
-              {error && (
-                <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-                  <p className="text-sm text-destructive">{error}</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-lg transition-all duration-200 disabled:opacity-50"
-              >
-                {loading ? "Signing in..." : "Login"}
-              </button>
-            </form>
-
-            {/* Powered by */}
-            <div className="mt-8 pt-6 border-t border-slate-100">
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-xs text-slate-400 uppercase tracking-wider">Powered by</span>
-                <img src="/cardinfra-logo.webp" alt="Card Infra" className="h-8" />
-              </div>
             </div>
-          </div>
+
+            {error && (
+              <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-xl">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg shadow-primary/25 hover:shadow-primary/40 disabled:opacity-50"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-sm text-slate-500 mt-6">
+          © 2024 Pavilion FIP. All rights reserved.
+        </p>
       </div>
     </div>
   );
