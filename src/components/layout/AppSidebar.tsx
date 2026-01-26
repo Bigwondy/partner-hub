@@ -134,15 +134,17 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
 
   const sidebarContent = (
     <>
-      {/* Logo */}
+      {/* Header */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <img 
-              src="/pavilion-logo.svg" 
-              alt="Pavilion FIP" 
-              className="h-10 w-auto"
-            />
+            <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold text-sidebar-foreground">Pavilion FIP</h1>
+              <p className="text-xs text-sidebar-foreground/60">Partner Portal</p>
+            </div>
           </div>
         )}
         {collapsed && (
@@ -165,11 +167,9 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
       {!collapsed && (
         <div className="px-4 py-4 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <img 
-              src="/providus-bank-logo.svg" 
-              alt="Providus Bank" 
-              className="w-10 h-10 rounded-full object-contain"
-            />
+            <div className="w-10 h-10 rounded-full bg-sidebar-accent flex items-center justify-center">
+              <span className="text-sm font-semibold text-sidebar-primary">PB</span>
+            </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">Providus Bank</p>
               <p className="text-xs text-sidebar-foreground/60">Partner ID: PTN-001</p>
