@@ -395,10 +395,10 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
         )}
         
         {/* Powered by Card Infra */}
-        <div className="mt-4 pt-4 border-t border-sidebar-border">
-          <div className="flex items-center justify-center gap-3">
-            <span className="text-sm font-medium text-sidebar-foreground">Powered by</span>
-            <img src="/cardinfra-logo.webp" alt="Card Infra" className="h-8" />
+        <div className="mt-4 py-4 px-3 bg-sidebar-accent/50 rounded-lg">
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-sm font-semibold text-sidebar-foreground">Powered by</span>
+            <img src="/cardinfra-logo.webp" alt="Card Infra" className="h-10" />
           </div>
         </div>
       </div>
