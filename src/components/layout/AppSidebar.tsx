@@ -393,6 +393,14 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
             <span>Sign Out</span>
           </button>
         )}
+        
+        {/* Powered by Card Infra */}
+        <div className="mt-4 pt-3 border-t border-sidebar-border">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-xs text-muted-foreground">Powered by</span>
+            <img src="/cardinfra-logo.webp" alt="Card Infra" className="h-4" />
+          </div>
+        </div>
       </div>
     </>
   );
