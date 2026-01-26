@@ -134,22 +134,21 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
 
   const sidebarContent = (
     <>
-      {/* Header */}
+      {/* Header - Providus Bank */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <h1 className="text-sm font-bold text-sidebar-foreground">Pavilion FIP</h1>
-              <p className="text-xs text-sidebar-foreground/60">Partner Portal</p>
-            </div>
+            <span className="text-lg font-bold tracking-tight text-sidebar-foreground uppercase">
+              Providus Bank
+            </span>
           </div>
         )}
         {collapsed && (
-          <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center mx-auto">
-            <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
+          <div className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center mx-auto">
+            <Building2 className="w-5 h-5 text-white" />
           </div>
         )}
         {/* Mobile close button */}
@@ -162,16 +161,6 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
           </button>
         )}
       </div>
-
-      {/* Partner Info */}
-      {!collapsed && (
-        <div className="px-4 py-4 border-b border-sidebar-border">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">Providus Bank</p>
-            <p className="text-xs text-sidebar-foreground/60">Partner ID: PTN-001</p>
-          </div>
-        </div>
-      )}
 
       {/* Main Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
