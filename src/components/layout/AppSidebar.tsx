@@ -166,14 +166,9 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
       {/* Partner Info */}
       {!collapsed && (
         <div className="px-4 py-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-sidebar-accent flex items-center justify-center">
-              <span className="text-sm font-semibold text-sidebar-primary">PB</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">Providus Bank</p>
-              <p className="text-xs text-sidebar-foreground/60">Partner ID: PTN-001</p>
-            </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-sidebar-foreground truncate">Providus Bank</p>
+            <p className="text-xs text-sidebar-foreground/60">Partner ID: PTN-001</p>
           </div>
         </div>
       )}
