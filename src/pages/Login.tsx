@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail, UserPlus } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { Checkbox } from "@/components/ui/checkbox";
+import dashboardPreview from "@/assets/dashboard-preview.png";
 
 // Test user accounts with different roles
 const testUsers = [
@@ -104,9 +105,8 @@ export default function Login() {
     <div className="min-h-screen flex">
       {/* Left Side - Dark Background with Dashboard Preview */}
       <div className="hidden lg:flex lg:w-1/2 bg-[#0a1628] relative overflow-hidden flex-col items-center justify-center p-8">
-        {/* Decorative circles */}
+        {/* Decorative circle */}
         <div className="absolute top-0 left-0 w-64 h-64 bg-primary/20 rounded-full -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute top-20 left-20 w-32 h-32 bg-amber-400/30 rounded-full" />
         
         {/* Content */}
         <div className="relative z-10 text-center mb-8">
@@ -116,10 +116,12 @@ export default function Login() {
         
         {/* Dashboard Preview Image */}
         <div className="relative z-10 w-full max-w-lg">
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 shadow-2xl border border-slate-700/50">
-            <div className="aspect-video bg-slate-900/50 rounded-lg flex items-center justify-center">
-              <div className="text-slate-500 text-sm">Dashboard Preview</div>
-            </div>
+          <div className="rounded-xl overflow-hidden shadow-2xl border border-slate-700/50">
+            <img 
+              src={dashboardPreview} 
+              alt="Dashboard Preview" 
+              className="w-full h-auto"
+            />
           </div>
         </div>
       </div>
