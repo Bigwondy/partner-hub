@@ -137,19 +137,12 @@ export function AppSidebar({ mobileOpen, onMobileClose, collapsed = false, onCol
       {/* Header - Providus Bank */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed && (
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-sidebar-foreground uppercase">
-              Providus Bank
-            </span>
-          </div>
+          <span className="text-lg font-bold tracking-tight text-sidebar-foreground uppercase">
+            Providus Bank
+          </span>
         )}
         {collapsed && (
-          <div className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center mx-auto">
-            <Building2 className="w-5 h-5 text-white" />
-          </div>
+          <span className="text-xs font-bold text-sidebar-foreground mx-auto">PB</span>
         )}
         {/* Mobile close button */}
         {onMobileClose && (
