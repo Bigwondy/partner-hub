@@ -30,15 +30,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
       {/* Right side */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Live indicator - hide on mobile */}
-        <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
-          </span>
-          <span>Live</span>
-        </div>
-
         {/* Notifications */}
         <Link to="/notifications" className="relative p-2 rounded-lg hover:bg-muted transition-colors">
           <Bell className="w-5 h-5 text-muted-foreground" />
