@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Key, CreditCard, Settings, ArrowLeft } from "lucide-react";
+import { Key, CreditCard, Settings, ArrowLeft, Copy, Check, Eye, EyeOff, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -13,13 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-// Mock API Keys data
-const apiKeysData = [
-  { id: "KEY-001", name: "Production API Key", key: "pav_live_*************a4f2", created: "2024-01-15", status: "active" },
-  { id: "KEY-002", name: "Test API Key", key: "pav_test_*************b3e1", created: "2024-01-10", status: "active" },
-  { id: "KEY-003", name: "Webhook Secret", key: "whsec_*************c2d9", created: "2024-01-08", status: "active" },
-];
 
 // Mock Card Profiles data
 const cardProfilesData = [
@@ -45,6 +38,13 @@ export default function Setup() {
     apiKey: "",
   });
   const [cardProfiles, setCardProfiles] = useState(cardProfilesData);
+  
+  // Partner Public Key state
+  const [partnerPublicKey, setPartnerPublicKey] = useState("pk_live_*************a4f2b3e1c2d9");
+  const [isEditingKey, setIsEditingKey] = useState(false);
+  const [editKeyValue, setEditKeyValue] = useState("");
+  const [showKey, setShowKey] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleConfigureClick = (profile: CardProfile) => {
     setConfiguringProfile(profile);
@@ -85,6 +85,49 @@ export default function Setup() {
   const handleBackToProfiles = () => {
     setConfiguringProfile(null);
     setConfigFormData({ baseUrl: "", apiKey: "" });
+  };
+
+  const handleCopyKey = () => {
+    navigator.clipboard.writeText(partnerPublicKey);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast({
+      title: "Copied",
+      description: "Public key copied to clipboard",
+    });
+  };
+
+  const handleEditKey = () => {
+    setEditKeyValue(partnerPublicKey);
+    setIsEditingKey(true);
+  };
+
+  const handleSaveKey = () => {
+    if (!editKeyValue.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Public key cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+    setPartnerPublicKey(editKeyValue);
+    setIsEditingKey(false);
+    toast({
+      title: "Key Updated",
+      description: "Partner public key has been updated successfully",
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingKey(false);
+    setEditKeyValue("");
+  };
+
+  const getMaskedKey = () => {
+    if (showKey) return partnerPublicKey;
+    if (partnerPublicKey.length <= 12) return "••••••••••••";
+    return partnerPublicKey.substring(0, 8) + "••••••••••••" + partnerPublicKey.substring(partnerPublicKey.length - 4);
   };
 
   // Configuration screen for a card profile
@@ -157,7 +200,7 @@ export default function Setup() {
       <div className="page-header">
         <h1 className="page-title">Setup</h1>
         <p className="page-description">
-          Manage API keys and configure card profiles
+          Manage partner public key and configure card profiles
         </p>
       </div>
 
@@ -166,7 +209,7 @@ export default function Setup() {
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="keys" className="flex items-center gap-2">
             <Key className="w-4 h-4" />
-            Pavilion API Keys
+            Partner Public Key
           </TabsTrigger>
           <TabsTrigger value="profiles" className="flex items-center gap-2">
             <CreditCard className="w-4 h-4" />
@@ -174,45 +217,76 @@ export default function Setup() {
           </TabsTrigger>
         </TabsList>
 
-        {/* API Keys Tab */}
+        {/* Partner Public Key Tab */}
         <TabsContent value="keys" className="mt-6">
-          <div className="card-elevated">
+          <div className="card-elevated max-w-2xl">
             <div className="p-6 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">Pavilion API Keys</h2>
+              <h2 className="text-lg font-semibold text-foreground">Partner Public Key</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                View and manage your API keys for integration
+                Your unique public key for API integration
               </p>
             </div>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>S/N</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Key</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {apiKeysData.map((key, index) => (
-                    <TableRow key={key.id}>
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell className="text-foreground">{key.name}</TableCell>
-                      <TableCell className="font-mono text-sm text-muted-foreground">{key.key}</TableCell>
-                      <TableCell className="text-muted-foreground">{key.created}</TableCell>
-                      <TableCell>
-                        <span className={cn(
-                          "status-badge",
-                          key.status === "active" ? "status-active" : "status-inactive"
-                        )}>
-                          {key.status}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="p-6">
+              {isEditingKey ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Public Key</label>
+                    <Input
+                      value={editKeyValue}
+                      onChange={(e) => setEditKeyValue(e.target.value)}
+                      placeholder="Enter your public key"
+                      className="font-mono"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSaveKey} className="flex-1">
+                      Save Key
+                    </Button>
+                    <Button variant="outline" onClick={handleCancelEdit} className="flex-1">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-lg border border-border">
+                    <Key className="w-5 h-5 text-primary flex-shrink-0" />
+                    <code className="flex-1 font-mono text-sm text-foreground break-all">
+                      {getMaskedKey()}
+                    </code>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowKey(!showKey)}
+                        className="h-8 w-8"
+                      >
+                        {showKey ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleCopyKey}
+                        className="h-8 w-8"
+                      >
+                        {copied ? (
+                          <Check className="w-4 h-4 text-success" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <Button variant="outline" onClick={handleEditKey} className="w-full">
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit Public Key
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </TabsContent>
