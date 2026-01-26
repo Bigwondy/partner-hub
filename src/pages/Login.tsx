@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 
 // Test user accounts with different roles
@@ -123,11 +123,9 @@ export default function Login() {
       <div className="w-full max-w-md relative z-10 animate-fade-in">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
-          <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25">
-            <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-primary-foreground" />
-          </div>
+          <img src="/providus-logo.webp" alt="Providus Bank" className="w-11 h-11 sm:w-14 sm:h-14" />
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">Pavilion FIP</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">Providus Bank</h1>
             <p className="text-xs sm:text-sm text-slate-400">Partner Portal</p>
           </div>
         </div>
