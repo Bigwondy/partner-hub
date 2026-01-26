@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail, UserPlus } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { Checkbox } from "@/components/ui/checkbox";
-import dashboardPreview from "@/assets/dashboard-preview.png";
+
 
 // Test user accounts with different roles
 const testUsers = [
@@ -103,31 +103,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Side - Dark Background with Dashboard Preview */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#0a1628] relative overflow-hidden flex-col items-center justify-center p-8">
-        {/* Decorative circle */}
-        <div className="absolute top-0 left-0 w-64 h-64 bg-primary/20 rounded-full -translate-x-1/2 -translate-y-1/2" />
-        
-        {/* Content */}
-        <div className="relative z-10 text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4">Partner Portal</h1>
-          <p className="text-slate-400 text-lg">Enter your credentials to access your account</p>
-        </div>
-        
-        {/* Dashboard Preview Image */}
-        <div className="relative z-10 w-full max-w-lg">
-          <div className="rounded-xl overflow-hidden shadow-2xl border border-slate-700/50">
-            <img 
-              src={dashboardPreview} 
-              alt="Dashboard Preview" 
-              className="w-full h-auto"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 bg-white flex flex-col min-h-screen">
+      {/* Login Form */}
+      <div className="w-full bg-white flex flex-col min-h-screen">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <div className="flex items-center gap-2">
