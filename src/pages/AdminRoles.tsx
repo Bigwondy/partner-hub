@@ -45,7 +45,6 @@ const modulesList = [
   { id: "dashboard", label: "Dashboard" },
   { id: "cards", label: "Cards" },
   { id: "requests", label: "Card Requests" },
-  { id: "approvals", label: "Approvals" },
   { id: "disputes", label: "Disputes" },
   { id: "reports", label: "Reports" },
   { id: "setup", label: "Setup" },

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -19,8 +18,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useApprovalsStore } from "@/stores/approvalsStore";
-import { useAuthStore } from "@/stores/authStore";
 
 interface CardReissueDialogProps {
   open: boolean;
@@ -44,20 +41,10 @@ export function CardReissueDialog({
   onOpenChange,
   cardNumber,
   cardHolder,
-  cardType,
 }: CardReissueDialogProps) {
   const [reason, setReason] = useState("");
   const [deliveryType, setDeliveryType] = useState("standard");
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { addApproval } = useApprovalsStore();
-  const { user } = useAuthStore();
-
-  const deliveryLabels: Record<string, string> = {
-    standard: "Standard Delivery (5-7 business days)",
-    express: "Express Delivery (2-3 business days)",
-    pickup: "Branch Pickup",
-  };
 
   const handleSubmit = () => {
     if (!reason) {
@@ -69,32 +56,13 @@ export function CardReissueDialog({
       return;
     }
 
-    // Add to approvals store
-    addApproval({
-      type: "reissue",
-      requestedBy: user?.name || "Current User",
-      requestedByEmail: user?.email || "user@example.com",
-      subject: `Reissue Card - ${cardNumber}`,
-      description: `Request to reissue card ${cardNumber} for ${cardHolder}. Reason: ${reason}. Delivery: ${deliveryLabels[deliveryType]}`,
-      status: "pending",
-      priority: "medium",
-      metadata: {
-        cardNumber,
-        cardHolder,
-        cardType,
-        reason,
-        deliveryType: deliveryLabels[deliveryType],
-      },
-    });
-
     toast({
-      title: "Reissue Request Submitted",
-      description: `Your request to reissue card for ${cardHolder} has been sent for approval.`,
+      title: "Card Reissue Initiated",
+      description: `Reissue request for card ${cardNumber} has been processed.`,
     });
     setReason("");
     setDeliveryType("standard");
     onOpenChange(false);
-    navigate("/approvals");
   };
 
   return (
