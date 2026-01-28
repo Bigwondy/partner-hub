@@ -11,7 +11,7 @@ const cardProfiles = [
   { id: "verve_standard", name: "Verve Standard" },
 ];
 
-type CardType = "instant" | "embossed" | null;
+type CardType = "instant" | "embossed" | "virtual" | null;
 
 export default function NewCardRequest() {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ export default function NewCardRequest() {
       return;
     }
 
-    if (selectedType === "instant" && !quantity) {
+    if ((selectedType === "instant" || selectedType === "virtual") && !quantity) {
       toast.error("Please enter the quantity");
       return;
     }
@@ -60,7 +60,7 @@ export default function NewCardRequest() {
       return;
     }
 
-    const cardTypeName = selectedType === "instant" ? "Instant" : "Embossed";
+    const cardTypeName = selectedType === "instant" ? "Instant" : selectedType === "embossed" ? "Embossed" : "Virtual";
 
     toast.success("Card request submitted successfully!", {
       description: `Your ${cardTypeName} card request has been processed.`,
@@ -90,17 +90,19 @@ export default function NewCardRequest() {
           <h1 className="page-title">New Card Request</h1>
           <p className="page-description">
             {selectedType === null
-              ? "Select the type of physical card you want to request"
+              ? "Select the type of card you want to request"
               : selectedType === "instant"
               ? "Request instant cards for immediate issuance"
-              : "Request embossed cards with personalized details"}
+              : selectedType === "embossed"
+              ? "Request embossed cards with personalized details"
+              : "Request virtual cards for online transactions"}
           </p>
         </div>
       </div>
 
       {/* Card Type Selection */}
       {selectedType === null && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <button
             onClick={() => setSelectedType("instant")}
             className="card-elevated p-6 text-left hover:border-accent transition-all group"
@@ -131,6 +133,24 @@ export default function NewCardRequest() {
                 <h3 className="text-lg font-semibold text-foreground mb-2">Embossed Cards</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Request personalized cards with raised text. Upload a card file with customer details.
+                </p>
+                <span className="text-sm font-medium text-accent">Select →</span>
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setSelectedType("virtual")}
+            className="card-elevated p-6 text-left hover:border-accent transition-all group"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-success/10 group-hover:bg-success/20 transition-colors">
+                <CreditCard className="w-6 h-6 text-success" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-foreground mb-2">Virtual Cards</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Request digital cards for online transactions. No physical card required.
                 </p>
                 <span className="text-sm font-medium text-accent">Select →</span>
               </div>
@@ -317,6 +337,87 @@ export default function NewCardRequest() {
                 type="submit"
                 className="btn-accent w-full py-3"
                 disabled={!cardProfile || !uploadedFile}
+              >
+                <Check className="w-4 h-4" />
+                Submit Request
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* Virtual Card Form */}
+      {selectedType === "virtual" && (
+        <form onSubmit={handleSubmit} className="card-elevated p-6">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 pb-4 border-b border-border">
+              <div className="p-2 rounded-lg bg-success/10">
+                <CreditCard className="w-5 h-5 text-success" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Virtual Card Request</h3>
+                <p className="text-sm text-muted-foreground">Digital cards for online transactions</p>
+              </div>
+            </div>
+
+            {/* Card Profile */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Card Profile
+              </label>
+              <select
+                value={cardProfile}
+                onChange={(e) => setCardProfile(e.target.value)}
+                className="input-field"
+              >
+                <option value="">Select a card profile</option>
+                {cardProfiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Quantity */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Quantity
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="1000"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="input-field"
+                placeholder="Enter number of cards"
+              />
+            </div>
+
+            {/* Summary */}
+            {cardProfile && quantity && (
+              <div className="p-4 bg-success/5 rounded-xl border border-success/20">
+                <h4 className="text-sm font-medium text-foreground mb-3">Request Summary</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Card Profile</span>
+                    <span className="font-medium text-foreground">{selectedProfileData?.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Quantity</span>
+                    <span className="font-medium text-foreground">{quantity} card(s)</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <div className="pt-4 border-t border-border">
+              <button
+                type="submit"
+                className="btn-accent w-full py-3"
+                disabled={!cardProfile || !quantity}
               >
                 <Check className="w-4 h-4" />
                 Submit Request
