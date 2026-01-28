@@ -60,8 +60,7 @@ const testUsers = [
         "cards.view",
         "requests.view",
         "disputes.view",
-        "reports.view",
-        "approvals.view"
+        "reports.view"
       ],
     },
   },

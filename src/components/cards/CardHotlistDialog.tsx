@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,13 +18,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useApprovalsStore } from "@/stores/approvalsStore";
-import { useAuthStore } from "@/stores/authStore";
+
 interface CardHotlistDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   cardNumber: string;
   cardHolder: string;
+  onHotlist?: () => void;
 }
 
 const hotlistReasons = [
@@ -43,13 +42,11 @@ export function CardHotlistDialog({
   onOpenChange,
   cardNumber,
   cardHolder,
+  onHotlist,
 }: CardHotlistDialogProps) {
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { addApproval } = useApprovalsStore();
-  const { user } = useAuthStore();
 
   const handleSubmit = () => {
     if (!reason) {
@@ -61,31 +58,15 @@ export function CardHotlistDialog({
       return;
     }
 
-    // Add to approvals store
-    addApproval({
-      type: "hotlist",
-      requestedBy: user?.name || "Current User",
-      requestedByEmail: user?.email || "user@example.com",
-      subject: `Hotlist Card - ${cardNumber}`,
-      description: `Request to hotlist card ${cardNumber} for ${cardHolder}. Reason: ${reason}${notes ? `. Notes: ${notes}` : ""}`,
-      status: "pending",
-      priority: "high",
-      metadata: {
-        cardNumber,
-        cardHolder,
-        reason,
-        notes: notes || "N/A",
-      },
-    });
-
+    onHotlist?.();
+    
     toast({
-      title: "Hotlist Request Submitted",
-      description: `Your request to hotlist card ${cardNumber} has been sent for approval.`,
+      title: "Card Hotlisted",
+      description: `Card ${cardNumber} has been added to the hotlist.`,
     });
     setReason("");
     setNotes("");
     onOpenChange(false);
-    navigate("/approvals");
   };
 
   return (
@@ -98,7 +79,6 @@ export function CardHotlistDialog({
           </DialogTitle>
           <DialogDescription>
             Adding a card to the hotlist will immediately block all transactions.
-            This action requires supervisor approval.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">

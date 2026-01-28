@@ -2,8 +2,7 @@ import { useState } from "react";
 import { ArrowLeft, Check, CreditCard, Upload, FileSpreadsheet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useApprovalsStore } from "@/stores/approvalsStore";
-import { useAuthStore } from "@/stores/authStore";
+
 const cardProfiles = [
   { id: "visa_classic", name: "Visa Classic" },
   { id: "visa_gold", name: "Visa Gold" },
@@ -16,8 +15,6 @@ type CardType = "instant" | "embossed" | null;
 
 export default function NewCardRequest() {
   const navigate = useNavigate();
-  const { addApproval } = useApprovalsStore();
-  const { user } = useAuthStore();
   const [selectedType, setSelectedType] = useState<CardType>(null);
   const [cardProfile, setCardProfile] = useState("");
   const [quantity, setQuantity] = useState("1");
@@ -64,28 +61,11 @@ export default function NewCardRequest() {
     }
 
     const cardTypeName = selectedType === "instant" ? "Instant" : "Embossed";
-    const profileName = selectedProfileData?.name || cardProfile;
 
-    // Add to approvals store
-    addApproval({
-      type: "card_request",
-      requestedBy: user?.name || "Current User",
-      requestedByEmail: user?.email || "user@example.com",
-      subject: `${cardTypeName} Card Request - ${selectedType === "instant" ? `${quantity} Cards` : uploadedFile?.name}`,
-      description: `Request for ${selectedType === "instant" ? quantity : "personalized"} ${cardTypeName.toLowerCase()} cards with ${profileName} profile`,
-      status: "pending",
-      priority: selectedType === "instant" && parseInt(quantity) > 100 ? "high" : "medium",
-      metadata: {
-        cardType: cardTypeName,
-        profile: profileName,
-        ...(selectedType === "instant" ? { quantity } : { fileName: uploadedFile?.name || "" }),
-      },
+    toast.success("Card request submitted successfully!", {
+      description: `Your ${cardTypeName} card request has been processed.`,
     });
-
-    toast.success("Card request submitted for approval!", {
-      description: `Your ${cardTypeName} card request has been sent to the approvals queue.`,
-    });
-    navigate("/approvals");
+    navigate("/card-requests");
   };
 
   const handleBack = () => {
