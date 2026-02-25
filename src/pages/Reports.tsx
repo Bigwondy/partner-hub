@@ -191,36 +191,35 @@ export default function Reports() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-6">
           <div className="flex flex-wrap gap-3 items-center">
             {/* Date Range Selector */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <select
-                value={dateRange}
-                onChange={(e) => handleDateRangeChange(e.target.value)}
-                className="bg-transparent text-sm font-medium text-foreground focus:outline-none"
-              >
-                <option value="today">Today</option>
-                <option value="last_7_days">Last 7 Days</option>
-                <option value="last_30_days">Last 30 Days</option>
-                <option value="this_month">This Month</option>
-                <option value="last_month">Last Month</option>
-                <option value="custom">Custom Range</option>
-              </select>
-            </div>
+            <Select value={dateRange} onValueChange={handleDateRangeChange}>
+              <SelectTrigger className="w-[160px]">
+                <Calendar className="w-4 h-4 text-muted-foreground mr-1" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="last_7_days">Last 7 Days</SelectItem>
+                <SelectItem value="last_30_days">Last 30 Days</SelectItem>
+                <SelectItem value="this_month">This Month</SelectItem>
+                <SelectItem value="last_month">Last Month</SelectItem>
+                <SelectItem value="custom">Custom Range</SelectItem>
+              </SelectContent>
+            </Select>
 
-            {/* Custom Date Range Pickers */}
+            {/* Custom Date Range - Input fields with calendar dropdown */}
             {dateRange === "custom" && (
               <div className="flex items-center gap-2">
                 <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-[140px] justify-start text-left font-normal text-sm",
-                        !customStartDate && "text-muted-foreground"
-                      )}
-                    >
-                      {customStartDate ? format(customStartDate, "MMM dd, yyyy") : "Start date"}
-                    </Button>
+                    <div className="relative">
+                      <Input
+                        readOnly
+                        value={customStartDate ? format(customStartDate, "dd/MM/yyyy") : ""}
+                        placeholder="dd/mm/yyyy"
+                        className="w-[130px] h-9 text-sm pr-8 cursor-pointer"
+                      />
+                      <Calendar className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <CalendarComponent
@@ -236,18 +235,18 @@ export default function Reports() {
                     />
                   </PopoverContent>
                 </Popover>
-                <span className="text-sm text-muted-foreground">to</span>
+                <span className="text-xs text-muted-foreground">—</span>
                 <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-[140px] justify-start text-left font-normal text-sm",
-                        !customEndDate && "text-muted-foreground"
-                      )}
-                    >
-                      {customEndDate ? format(customEndDate, "MMM dd, yyyy") : "End date"}
-                    </Button>
+                    <div className="relative">
+                      <Input
+                        readOnly
+                        value={customEndDate ? format(customEndDate, "dd/MM/yyyy") : ""}
+                        placeholder="dd/mm/yyyy"
+                        className="w-[130px] h-9 text-sm pr-8 cursor-pointer"
+                      />
+                      <Calendar className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <CalendarComponent
