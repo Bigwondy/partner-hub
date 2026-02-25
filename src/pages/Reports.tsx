@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { Download, Calendar, Filter, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Download, Calendar, Filter, ArrowUpRight, ArrowDownRight, X } from "lucide-react";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { exportToCSV, exportToExcel, exportToPDF } from "@/lib/export";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -18,6 +22,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
+import { toast } from "sonner";
 
 // Transaction Report Data
 const transactionData = [
@@ -58,28 +72,98 @@ export default function Reports() {
   const [activeTab, setActiveTab] = useState("transactions");
   const [dateRange, setDateRange] = useState("last_30_days");
   const [feeTypeFilter, setFeeTypeFilter] = useState("all");
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
+
+  // More Filters state
+  const [terminalIdFilter, setTerminalIdFilter] = useState("");
+  const [merchantIdFilter, setMerchantIdFilter] = useState("");
+  const [responseFilter, setResponseFilter] = useState("all");
+  const [accountNumberFilter, setAccountNumberFilter] = useState("");
+  const [filtersApplied, setFiltersApplied] = useState(false);
+
+  const getFilteredTransactionData = () => {
+    let data = transactionData;
+    if (terminalIdFilter) {
+      data = data.filter((tx) => tx.terminalId.toLowerCase().includes(terminalIdFilter.toLowerCase()));
+    }
+    if (merchantIdFilter) {
+      data = data.filter((tx) => tx.merchantId.toLowerCase().includes(merchantIdFilter.toLowerCase()));
+    }
+    if (responseFilter !== "all") {
+      data = data.filter((tx) => tx.response.toLowerCase() === responseFilter.toLowerCase());
+    }
+    return data;
+  };
 
   const getFilteredSettlementData = () => {
-    if (feeTypeFilter === "all") return settlementData;
-    return settlementData.filter(
-      (item) => item.feeType.toLowerCase().replace(" ", "") === feeTypeFilter.toLowerCase()
+    let data = settlementData;
+    if (feeTypeFilter !== "all") {
+      data = data.filter(
+        (item) => item.feeType.toLowerCase().replace(" ", "") === feeTypeFilter.toLowerCase()
+      );
+    }
+    if (accountNumberFilter) {
+      data = data.filter((item) => item.accountNumber.includes(accountNumberFilter));
+    }
+    return data;
+  };
+
+  const handleApplyFilters = () => {
+    setFiltersApplied(
+      terminalIdFilter !== "" || merchantIdFilter !== "" || responseFilter !== "all" || accountNumberFilter !== ""
     );
+    toast.success("Filters applied");
+  };
+
+  const handleClearFilters = () => {
+    setTerminalIdFilter("");
+    setMerchantIdFilter("");
+    setResponseFilter("all");
+    setAccountNumberFilter("");
+    setFiltersApplied(false);
+    toast.success("Filters cleared");
   };
 
   const handleExportCSV = () => {
-    const data = activeTab === "transactions" ? transactionData : getFilteredSettlementData();
+    const data = activeTab === "transactions" ? getFilteredTransactionData() : getFilteredSettlementData();
+    if (data.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
     exportToCSV(data, `${activeTab}-report`);
+    toast.success(`${activeTab} report exported as CSV`);
   };
 
   const handleExportExcel = () => {
-    const data = activeTab === "transactions" ? transactionData : getFilteredSettlementData();
+    const data = activeTab === "transactions" ? getFilteredTransactionData() : getFilteredSettlementData();
+    if (data.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
     exportToExcel(data, `${activeTab}-report`);
+    toast.success(`${activeTab} report exported as Excel`);
   };
 
   const handleExportPDF = () => {
-    const data = activeTab === "transactions" ? transactionData : getFilteredSettlementData();
+    const data = activeTab === "transactions" ? getFilteredTransactionData() : getFilteredSettlementData();
+    if (data.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
     const title = activeTab === "transactions" ? "Transaction Report" : "Settlement Report";
     exportToPDF(data, `${activeTab}-report`, title);
+    toast.success(`${activeTab} report exported as PDF`);
+  };
+
+  const handleDateRangeChange = (value: string) => {
+    setDateRange(value);
+    if (value !== "custom") {
+      setCustomStartDate(undefined);
+      setCustomEndDate(undefined);
+    }
   };
 
   return (
@@ -87,9 +171,7 @@ export default function Reports() {
       {/* Page Header */}
       <div className="page-header">
         <h1 className="page-title">Reports</h1>
-        <p className="page-description">
-          View transaction and settlement reports
-        </p>
+        <p className="page-description">View transaction and settlement reports</p>
       </div>
 
       {/* Tabs */}
@@ -105,14 +187,15 @@ export default function Reports() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Filters and Export - Common for both tabs */}
+        {/* Filters and Export */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-6">
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 items-center">
+            {/* Date Range Selector */}
             <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
               <Calendar className="w-4 h-4 text-muted-foreground" />
               <select
                 value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
+                onChange={(e) => handleDateRangeChange(e.target.value)}
                 className="bg-transparent text-sm font-medium text-foreground focus:outline-none"
               >
                 <option value="today">Today</option>
@@ -123,7 +206,66 @@ export default function Reports() {
                 <option value="custom">Custom Range</option>
               </select>
             </div>
-            
+
+            {/* Custom Date Range Pickers */}
+            {dateRange === "custom" && (
+              <div className="flex items-center gap-2">
+                <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[140px] justify-start text-left font-normal text-sm",
+                        !customStartDate && "text-muted-foreground"
+                      )}
+                    >
+                      {customStartDate ? format(customStartDate, "MMM dd, yyyy") : "Start date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={customStartDate}
+                      onSelect={(date) => {
+                        setCustomStartDate(date);
+                        setStartDateOpen(false);
+                      }}
+                      disabled={(date) => (customEndDate ? date > customEndDate : false)}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <span className="text-sm text-muted-foreground">to</span>
+                <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[140px] justify-start text-left font-normal text-sm",
+                        !customEndDate && "text-muted-foreground"
+                      )}
+                    >
+                      {customEndDate ? format(customEndDate, "MMM dd, yyyy") : "End date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={customEndDate}
+                      onSelect={(date) => {
+                        setCustomEndDate(date);
+                        setEndDateOpen(false);
+                      }}
+                      disabled={(date) => (customStartDate ? date < customStartDate : false)}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+
             {activeTab === "settlements" && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Fee Type:</span>
@@ -142,11 +284,82 @@ export default function Reports() {
               </div>
             )}
 
-            <button className="btn-secondary">
-              <Filter className="w-4 h-4" />
-              More Filters
-            </button>
+            {/* More Filters */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className={cn("btn-secondary", filtersApplied && "ring-2 ring-accent")}>
+                  <Filter className="w-4 h-4" />
+                  More Filters
+                  {filtersApplied && (
+                    <span className="ml-1 w-2 h-2 rounded-full bg-accent inline-block" />
+                  )}
+                </button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Advanced Filters</SheetTitle>
+                </SheetHeader>
+                <div className="space-y-5 mt-6">
+                  {activeTab === "transactions" ? (
+                    <>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">Terminal ID</label>
+                        <Input
+                          placeholder="e.g. TRM-45821"
+                          value={terminalIdFilter}
+                          onChange={(e) => setTerminalIdFilter(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">Merchant ID</label>
+                        <Input
+                          placeholder="e.g. MRC-001"
+                          value={merchantIdFilter}
+                          onChange={(e) => setMerchantIdFilter(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">Response</label>
+                        <Select value={responseFilter} onValueChange={setResponseFilter}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
+                            <SelectItem value="approved">Approved</SelectItem>
+                            <SelectItem value="declined">Declined</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">Account Number</label>
+                        <Input
+                          placeholder="e.g. 0123456789"
+                          value={accountNumberFilter}
+                          onChange={(e) => setAccountNumberFilter(e.target.value)}
+                        />
+                      </div>
+                    </>
+                  )}
+                  <div className="flex gap-3 pt-4">
+                    <SheetClose asChild>
+                      <Button onClick={handleApplyFilters} className="flex-1">
+                        Apply Filters
+                      </Button>
+                    </SheetClose>
+                    <Button variant="outline" onClick={handleClearFilters} className="flex-1">
+                      <X className="w-4 h-4 mr-1" />
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
+
           <div className="flex gap-2">
             <button className="btn-secondary" onClick={handleExportCSV}>
               <Download className="w-4 h-4" />
@@ -168,9 +381,7 @@ export default function Reports() {
           <div className="card-elevated">
             <div className="p-6 border-b border-border">
               <h2 className="text-lg font-semibold text-foreground">Transaction Overview</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                All transactions with details
-              </p>
+              <p className="text-sm text-muted-foreground mt-1">All transactions with details</p>
             </div>
             <div className="overflow-x-auto">
               <Table>
@@ -187,7 +398,7 @@ export default function Reports() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactionData.map((tx) => (
+                  {getFilteredTransactionData().map((tx) => (
                     <TableRow key={tx.id}>
                       <TableCell className="font-medium">{tx.id}</TableCell>
                       <TableCell className="text-muted-foreground">{tx.date}</TableCell>
@@ -210,7 +421,7 @@ export default function Reports() {
               </Table>
             </div>
             <div className="p-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground">
-              <span>Showing {transactionData.length} of {transactionData.length} transactions</span>
+              <span>Showing {getFilteredTransactionData().length} of {transactionData.length} transactions</span>
             </div>
           </div>
         </TabsContent>
@@ -220,9 +431,7 @@ export default function Reports() {
           <div className="card-elevated">
             <div className="p-6 border-b border-border">
               <h2 className="text-lg font-semibold text-foreground">Settlement Overview</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Settlement records with fee details
-              </p>
+              <p className="text-sm text-muted-foreground mt-1">Settlement records with fee details</p>
             </div>
             <div className="overflow-x-auto">
               <Table>
