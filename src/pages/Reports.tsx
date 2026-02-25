@@ -74,8 +74,11 @@ export default function Reports() {
   const [feeTypeFilter, setFeeTypeFilter] = useState("all");
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
-  const [startDateOpen, setStartDateOpen] = useState(false);
-  const [endDateOpen, setEndDateOpen] = useState(false);
+  const [tempStartDate, setTempStartDate] = useState<Date | undefined>();
+  const [tempEndDate, setTempEndDate] = useState<Date | undefined>();
+  const [startTime, setStartTime] = useState("00:00");
+  const [endTime, setEndTime] = useState("23:59");
+  const [customRangeOpen, setCustomRangeOpen] = useState(false);
 
   // More Filters state
   const [terminalIdFilter, setTerminalIdFilter] = useState("");
@@ -160,10 +163,31 @@ export default function Reports() {
 
   const handleDateRangeChange = (value: string) => {
     setDateRange(value);
-    if (value !== "custom") {
+    if (value === "custom") {
+      setTempStartDate(customStartDate);
+      setTempEndDate(customEndDate);
+      setCustomRangeOpen(true);
+    } else {
       setCustomStartDate(undefined);
       setCustomEndDate(undefined);
     }
+  };
+
+  const handleApplyCustomRange = () => {
+    if (!tempStartDate || !tempEndDate) {
+      toast.error("Please select both start and end dates");
+      return;
+    }
+    const [sh, sm] = startTime.split(":").map(Number);
+    const [eh, em] = endTime.split(":").map(Number);
+    const start = new Date(tempStartDate);
+    start.setHours(sh, sm, 0, 0);
+    const end = new Date(tempEndDate);
+    end.setHours(eh, em, 59, 999);
+    setCustomStartDate(start);
+    setCustomEndDate(end);
+    setCustomRangeOpen(false);
+    toast.success(`Showing data from ${format(start, "dd MMM yyyy, HH:mm")} to ${format(end, "dd MMM yyyy, HH:mm")}`);
   };
 
   return (
@@ -206,63 +230,74 @@ export default function Reports() {
               </SelectContent>
             </Select>
 
-            {/* Custom Date Range - Input fields with calendar dropdown */}
+            {/* Custom Date Range Popover */}
             {dateRange === "custom" && (
-              <div className="flex items-center gap-2">
-                <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
-                  <PopoverTrigger asChild>
-                    <div className="relative">
-                      <Input
-                        readOnly
-                        value={customStartDate ? format(customStartDate, "dd/MM/yyyy") : ""}
-                        placeholder="dd/mm/yyyy"
-                        className="w-[130px] h-9 text-sm pr-8 cursor-pointer"
-                      />
-                      <Calendar className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Popover open={customRangeOpen} onOpenChange={setCustomRangeOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-9 text-sm gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {customStartDate && customEndDate
+                      ? `${format(customStartDate, "dd MMM yyyy, HH:mm")} — ${format(customEndDate, "dd MMM yyyy, HH:mm")}`
+                      : "Select date & time range"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="p-4 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Start Date */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Start Date</label>
+                        <CalendarComponent
+                          mode="single"
+                          selected={tempStartDate}
+                          onSelect={setTempStartDate}
+                          disabled={(date) => (tempEndDate ? date > tempEndDate : false)}
+                          initialFocus
+                          className={cn("p-2 pointer-events-auto border rounded-md")}
+                        />
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs text-muted-foreground">Time:</label>
+                          <Input
+                            type="time"
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                            className="h-8 text-sm flex-1"
+                          />
+                        </div>
+                      </div>
+                      {/* End Date */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">End Date</label>
+                        <CalendarComponent
+                          mode="single"
+                          selected={tempEndDate}
+                          onSelect={setTempEndDate}
+                          disabled={(date) => (tempStartDate ? date < tempStartDate : false)}
+                          initialFocus
+                          className={cn("p-2 pointer-events-auto border rounded-md")}
+                        />
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs text-muted-foreground">Time:</label>
+                          <Input
+                            type="time"
+                            value={endTime}
+                            onChange={(e) => setEndTime(e.target.value)}
+                            className="h-8 text-sm flex-1"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={customStartDate}
-                      onSelect={(date) => {
-                        setCustomStartDate(date);
-                        setStartDateOpen(false);
-                      }}
-                      disabled={(date) => (customEndDate ? date > customEndDate : false)}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <span className="text-xs text-muted-foreground">—</span>
-                <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
-                  <PopoverTrigger asChild>
-                    <div className="relative">
-                      <Input
-                        readOnly
-                        value={customEndDate ? format(customEndDate, "dd/MM/yyyy") : ""}
-                        placeholder="dd/mm/yyyy"
-                        className="w-[130px] h-9 text-sm pr-8 cursor-pointer"
-                      />
-                      <Calendar className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <div className="flex gap-2 pt-2 border-t border-border">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => setCustomRangeOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button size="sm" className="flex-1" onClick={handleApplyCustomRange}>
+                        Apply
+                      </Button>
                     </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={customEndDate}
-                      onSelect={(date) => {
-                        setCustomEndDate(date);
-                        setEndDateOpen(false);
-                      }}
-                      disabled={(date) => (customStartDate ? date < customStartDate : false)}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
 
             {activeTab === "settlements" && (
